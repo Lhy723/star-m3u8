@@ -44,11 +44,7 @@
           </div>
         </div>
       </div>
-      <button
-        class="btn-primary"
-        @click="addDownload"
-        :disabled="!url || !downloadPath"
-      >
+      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadPath">
         <ZapIcon class="btn-icon" />
         添加到队列
       </button>
@@ -68,11 +64,7 @@
         <span>添加 M3U8 链接开始下载</span>
       </div>
       <div v-else class="download-list">
-        <DownloadCard
-          v-for="item in downloadStore.queue"
-          :key="item.id"
-          :item="item"
-        />
+        <DownloadCard v-for="item in downloadStore.queue" :key="item.id" :item="item" />
       </div>
     </div>
   </div>
@@ -95,21 +87,21 @@ const url = ref('')
 const filename = ref('video.mp4')
 const downloadPath = ref('')
 
-const selectPath = async () => {
+async function selectPath(): Promise<void> {
   const path = await downloadStore.selectDirectory()
   if (path) {
     downloadPath.value = path
   }
 }
 
-const addDownload = () => {
+function addDownload(): void {
   if (!url.value || !downloadPath.value) return
 
   const item = {
     id: Date.now().toString(),
     url: url.value,
     filename: filename.value,
-    path: downloadPath.value,
+    savePath: downloadPath.value,
     progress: 0,
     speed: '0 KB/s',
     status: 'pending' as const

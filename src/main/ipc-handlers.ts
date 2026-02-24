@@ -3,10 +3,10 @@ import { selectDirectory, DownloadManager } from './downloader'
 
 const downloadManager = new DownloadManager()
 
-export function setupWindowEvents(win: BrowserWindow) {
+export function setupWindowEvents(win: BrowserWindow): void {
   downloadManager.setMainWindow(win)
 
-  const sendWindowState = () => {
+  function sendWindowState(): void {
     if (!win.isDestroyed()) {
       win.webContents.send('window-state-changed', {
         isMaximized: win.isMaximized(),
@@ -53,7 +53,7 @@ export function setupWindowEvents(win: BrowserWindow) {
   win.on('blur', sendWindowState)
 }
 
-export function registerIpcHandlers() {
+export function registerIpcHandlers(): void {
   ipcMain.handle('select-directory', () => selectDirectory())
 
   ipcMain.on('start-download', (_event, item) => {

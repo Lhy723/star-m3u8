@@ -56,20 +56,20 @@ const selectRef = ref<HTMLElement | null>(null)
 const isOpen = ref(false)
 
 const selectedLabel = computed(() => {
-  const selected = props.options.find(opt => opt.value === props.modelValue)
+  const selected = props.options.find((opt) => opt.value === props.modelValue)
   return selected ? selected.label : props.placeholder
 })
 
-const toggleDropdown = () => {
+function toggleDropdown(): void {
   isOpen.value = !isOpen.value
 }
 
-const selectOption = (option: SelectOption) => {
+function selectOption(option: SelectOption): void {
   emit('update:modelValue', option.value)
   isOpen.value = false
 }
 
-const handleClickOutside = (event: MouseEvent) => {
+function handleClickOutside(event: MouseEvent): void {
   if (selectRef.value && !selectRef.value.contains(event.target as Node)) {
     isOpen.value = false
   }

@@ -5,10 +5,10 @@
         <SettingsIcon class="title-icon" />
         设置
       </h2>
-      
+
       <div class="settings-section">
         <h3 class="section-title">常规设置</h3>
-        
+
         <div class="form-group">
           <label for="download-path">默认下载路径</label>
           <div class="path-input">
@@ -25,36 +25,27 @@
             </button>
           </div>
         </div>
-        
+
         <div class="form-group">
           <label>主题</label>
-          <CustomSelect
-            v-model="theme"
-            :options="themeOptions"
-          />
+          <CustomSelect v-model="theme" :options="themeOptions" />
         </div>
       </div>
-      
+
       <div class="settings-section">
         <h3 class="section-title">下载设置</h3>
-        
+
         <div class="form-group">
           <label>并发连接数</label>
-          <CustomSelect
-            v-model="concurrent"
-            :options="concurrentOptions"
-          />
+          <CustomSelect v-model="concurrent" :options="concurrentOptions" />
         </div>
-        
+
         <div class="form-group">
           <label>重试次数</label>
-          <CustomSelect
-            v-model="retry"
-            :options="retryOptions"
-          />
+          <CustomSelect v-model="retry" :options="retryOptions" />
         </div>
       </div>
-      
+
       <button class="btn-primary">
         <CheckCircleIcon class="btn-icon" />
         保存设置
@@ -65,11 +56,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import {
-  SettingsIcon,
-  FolderIcon,
-  CheckCircleIcon
-} from '@renderer/components/icons'
+import { SettingsIcon, FolderIcon, CheckCircleIcon } from '@renderer/components/icons'
 import CustomSelect from '@renderer/components/CustomSelect/CustomSelect.vue'
 
 const theme = ref('auto')

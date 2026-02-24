@@ -17,7 +17,7 @@
           </div>
           <div class="history-info">
             <span class="history-filename">{{ item.filename }}</span>
-            <span class="history-path">{{ item.path }}</span>
+            <span class="history-path">{{ item.savePath }}</span>
           </div>
           <div class="history-actions">
             <button class="action-btn" title="打开文件夹">
@@ -32,12 +32,7 @@
 
 <script setup lang="ts">
 import { useDownloadStore } from '../../stores/download'
-import {
-  HistoryIcon,
-  FileCheckIcon,
-  CheckCircleIcon,
-  FolderIcon
-} from '@renderer/components/icons'
+import { HistoryIcon, FileCheckIcon, CheckCircleIcon, FolderIcon } from '@renderer/components/icons'
 
 const downloadStore = useDownloadStore()
 </script>

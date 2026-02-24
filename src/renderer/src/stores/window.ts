@@ -13,48 +13,50 @@ export const useWindowStore = defineStore('window', () => {
   const isFocused = ref(true)
   let unsubscribe: (() => void) | null = null
 
-  const syncState = (state: WindowState) => {
+  function syncState(state: WindowState): void {
     isMaximized.value = state.isMaximized
     isMinimized.value = state.isMinimized
     isFocused.value = state.isFocused
   }
 
-  const init = async () => {
-    const state = await window.electron?.ipcRenderer.invoke('get-window-state')
+  async function init(): Promise<void> {
+    const state = (await window.electron?.ipcRenderer.invoke('get-window-state')) as
+      | WindowState
+      | undefined
     if (state) syncState(state)
 
-    unsubscribe = window.electron?.ipcRenderer.on(
-      'window-state-changed',
-      (_: unknown, state: WindowState) => syncState(state)
-    )
+    unsubscribe = window.electron?.ipcRenderer.on('window-state-changed', (data) => {
+      const windowState = data as WindowState
+      syncState(windowState)
+    })
   }
 
-  const dispose = () => {
+  function dispose(): void {
     unsubscribe?.()
     unsubscribe = null
   }
 
-  const minimize = () => {
+  function minimize(): void {
     isMinimized.value = true
     window.electron?.ipcRenderer.send('window-minimize')
   }
 
-  const maximize = () => {
+  function maximize(): void {
     isMaximized.value = true
     window.electron?.ipcRenderer.send('window-maximize')
   }
 
-  const unmaximize = () => {
+  function unmaximize(): void {
     isMaximized.value = false
     window.electron?.ipcRenderer.send('window-maximize')
   }
 
-  const toggleMaximize = () => {
+  function toggleMaximize(): void {
     isMaximized.value = !isMaximized.value
     window.electron?.ipcRenderer.send('window-maximize')
   }
 
-  const close = () => {
+  function close(): void {
     window.electron?.ipcRenderer.send('window-close')
   }
 

@@ -5,11 +5,32 @@ export interface DownloadItem {
   id: string
   url: string
   filename: string
-  path: string
+  savePath: string
   progress: number
   speed: string
-  status: 'pending' | 'downloading' | 'paused' | 'completed' | 'error'
+  status: 'pending' | 'downloading' | 'paused' | 'merging' | 'completed' | 'error'
   errorMessage?: string
+  totalSegments?: number
+  downloadedSegments?: number
+}
+
+interface ProgressData {
+  id: string
+  progress: number
+  speed: string
+  downloadedSegments?: number
+  totalSegments?: number
+}
+
+interface StatusData {
+  id: string
+  status: DownloadItem['status']
+  totalSegments?: number
+}
+
+interface ErrorData {
+  id: string
+  error: string
 }
 
 export const useDownloadStore = defineStore('download', () => {
@@ -19,83 +40,107 @@ export const useDownloadStore = defineStore('download', () => {
   let unsubscribeStatus: (() => void) | null = null
   let unsubscribeError: (() => void) | null = null
 
-  const addToQueue = (item: DownloadItem) => {
+  function addToQueue(item: DownloadItem): void {
+    console.log('[DownloadStore] Adding to queue:', item)
     queue.value.push(item)
     window.electron?.ipcRenderer.send('start-download', item)
   }
 
-  const updateProgress = (id: string, progress: number, speed: string) => {
-    const item = queue.value.find(i => i.id === id)
+  function updateProgress(
+    id: string,
+    progress: number,
+    speed: string,
+    downloadedSegments?: number,
+    totalSegments?: number
+  ): void {
+    console.log('[DownloadStore] Update progress:', id, progress, speed)
+    const item = queue.value.find((i) => i.id === id)
     if (item) {
       item.progress = progress
       item.speed = speed
-    }
-  }
-
-  const updateStatus = (id: string, status: DownloadItem['status']) => {
-    const item = queue.value.find(i => i.id === id)
-    if (item) {
-      item.status = status
-      if (status === 'completed') {
-        history.value.unshift({ ...item })
+      if (downloadedSegments !== undefined) {
+        item.downloadedSegments = downloadedSegments
+      }
+      if (totalSegments !== undefined) {
+        item.totalSegments = totalSegments
       }
     }
   }
 
-  const removeFromQueue = (id: string) => {
-    const index = queue.value.findIndex(i => i.id === id)
+  function updateStatus(id: string, status: DownloadItem['status'], totalSegments?: number): void {
+    console.log('[DownloadStore] Update status:', id, status)
+    const item = queue.value.find((i) => i.id === id)
+    if (item) {
+      item.status = status
+      if (totalSegments !== undefined) {
+        item.totalSegments = totalSegments
+      }
+      if (status === 'completed') {
+        history.value.unshift({ ...item })
+        removeFromQueue(id)
+      }
+    }
+  }
+
+  function removeFromQueue(id: string): void {
+    const index = queue.value.findIndex((i) => i.id === id)
     if (index > -1) {
       queue.value.splice(index, 1)
     }
   }
 
-  const pauseDownload = (id: string) => {
+  function pauseDownload(id: string): void {
     window.electron?.ipcRenderer.send('pause-download', id)
     updateStatus(id, 'paused')
   }
 
-  const resumeDownload = (id: string) => {
+  function resumeDownload(id: string): void {
     window.electron?.ipcRenderer.send('resume-download', id)
     updateStatus(id, 'downloading')
   }
 
-  const cancelDownload = (id: string) => {
+  function cancelDownload(id: string): void {
     window.electron?.ipcRenderer.send('cancel-download', id)
     removeFromQueue(id)
   }
 
-  const selectDirectory = async (): Promise<string | null> => {
-    return await window.electron?.ipcRenderer.invoke('select-directory') || null
+  async function selectDirectory(): Promise<string | null> {
+    return ((await window.electron?.ipcRenderer.invoke('select-directory')) as string) || null
   }
 
-  const init = () => {
-    unsubscribeProgress = window.electron?.ipcRenderer.on(
-      'download-progress',
-      (_: unknown, data: { id: string; progress: number; speed: string }) => {
-        updateProgress(data.id, data.progress, data.speed)
-      }
-    )
+  function init(): void {
+    console.log('[DownloadStore] Initializing IPC listeners')
 
-    unsubscribeStatus = window.electron?.ipcRenderer.on(
-      'download-status',
-      (_: unknown, data: { id: string; status: DownloadItem['status'] }) => {
-        updateStatus(data.id, data.status)
-      }
-    )
+    unsubscribeProgress = window.electron?.ipcRenderer.on('download-progress', (data) => {
+      console.log('[DownloadStore] Received progress:', data)
+      const progressData = data as ProgressData
+      updateProgress(
+        progressData.id,
+        progressData.progress,
+        progressData.speed,
+        progressData.downloadedSegments,
+        progressData.totalSegments
+      )
+    })
 
-    unsubscribeError = window.electron?.ipcRenderer.on(
-      'download-error',
-      (_: unknown, data: { id: string; error: string }) => {
-        const item = queue.value.find(i => i.id === data.id)
-        if (item) {
-          item.status = 'error'
-          item.errorMessage = data.error
-        }
+    unsubscribeStatus = window.electron?.ipcRenderer.on('download-status', (data) => {
+      console.log('[DownloadStore] Received status:', data)
+      const statusData = data as StatusData
+      updateStatus(statusData.id, statusData.status, statusData.totalSegments)
+    })
+
+    unsubscribeError = window.electron?.ipcRenderer.on('download-error', (data) => {
+      console.log('[DownloadStore] Received error:', data)
+      const errorData = data as ErrorData
+      const item = queue.value.find((i) => i.id === errorData.id)
+      if (item) {
+        item.status = 'error'
+        item.errorMessage = errorData.error
       }
-    )
+    })
   }
 
-  const dispose = () => {
+  function dispose(): void {
     unsubscribeProgress?.()
     unsubscribeStatus?.()
     unsubscribeError?.()

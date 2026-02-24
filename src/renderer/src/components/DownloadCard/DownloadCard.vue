@@ -99,15 +99,15 @@ const statusBadgeIcon = computed(() => {
   return null
 })
 
-const pause = () => {
+function pause(): void {
   downloadStore.pauseDownload(props.item.id)
 }
 
-const resume = () => {
+function resume(): void {
   downloadStore.resumeDownload(props.item.id)
 }
 
-const cancel = () => {
+function cancel(): void {
   downloadStore.cancelDownload(props.item.id)
 }
 </script>

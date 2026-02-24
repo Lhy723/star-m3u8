@@ -48,11 +48,9 @@ const menuItems = [
   { path: '/about', icon: InfoIcon, label: '关于' }
 ]
 
-const themeTitle = computed(() =>
-  isDark.value ? '切换到浅色模式' : '切换到深色模式'
-)
+const themeTitle = computed(() => (isDark.value ? '切换到浅色模式' : '切换到深色模式'))
 
-const toggleTheme = () => {
+function toggleTheme(): void {
   isDark.value = !isDark.value
   document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
   localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
@@ -61,7 +59,7 @@ const toggleTheme = () => {
 onMounted(() => {
   const savedTheme = localStorage.getItem('theme')
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  
+
   if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
     isDark.value = true
     document.documentElement.setAttribute('data-theme', 'dark')

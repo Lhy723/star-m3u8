@@ -30,12 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  InfoIcon,
-  ZapIcon,
-  UserIcon,
-  AlertTriangleIcon
-} from '@renderer/components/icons'
+import { InfoIcon, ZapIcon, UserIcon, AlertTriangleIcon } from '@renderer/components/icons'
 </script>
 
 <style scoped>

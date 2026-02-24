@@ -106,7 +106,9 @@
 
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .dropdown-enter-from,
@@ -120,7 +122,7 @@
   .dropdown-leave-active {
     transition: opacity 0.1s ease;
   }
-  
+
   .dropdown-enter-from,
   .dropdown-leave-to {
     transform: none;

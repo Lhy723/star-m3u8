@@ -57,7 +57,10 @@ onUnmounted(() => {
 
 .page-fade-enter-active,
 .page-fade-leave-active {
-  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+  transition:
+    opacity 0.25s ease,
+    filter 0.25s ease,
+    transform 0.25s ease;
 }
 
 .page-fade-enter-from {
@@ -77,7 +80,7 @@ onUnmounted(() => {
   .page-fade-leave-active {
     transition: opacity 0.15s ease;
   }
-  
+
   .page-fade-enter-from,
   .page-fade-leave-to {
     filter: none;

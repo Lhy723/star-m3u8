@@ -15,9 +15,11 @@
 ### Task 1: 安装项目依赖
 
 **文件：**
+
 - 修改：`package.json`
 
 **Step 1: 安装所需依赖**
+
 ```bash
 pnpm add pinia vue-router element-plus @element-plus/icons-vue axios
 pnpm add -D @types/node
@@ -32,9 +34,11 @@ pnpm add -D @types/node
 ### Task 2: 配置 Electron 无边框窗口
 
 **文件：**
+
 - 修改：`src/main/index.ts`
 
 **Step 1: 修改窗口配置**
+
 ```typescript
 // 在 createWindow 函数中
 const mainWindow = new BrowserWindow({
@@ -50,6 +54,7 @@ const mainWindow = new BrowserWindow({
 ```
 
 **Step 2: 添加窗口控制 IPC 处理器**
+
 ```typescript
 import { ipcMain } from 'electron'
 
@@ -69,11 +74,13 @@ ipcMain.handle('window-close', () => mainWindow?.close())
 ### Task 3: 设置主题系统与全局样式
 
 **文件：**
+
 - 创建：`src/renderer/src/styles/variables.css`
 - 创建：`src/renderer/src/styles/main.css`
 - 修改：`src/renderer/src/main.ts`
 
 **Step 1: 创建 CSS 变量文件**
+
 ```css
 /* variables.css */
 :root {
@@ -91,7 +98,7 @@ ipcMain.handle('window-close', () => mainWindow?.close())
   --radius-lg: 16px;
 }
 
-[data-theme="dark"] {
+[data-theme='dark'] {
   --bg-primary: #0f172a;
   --bg-secondary: #1e293b;
   --bg-card: #1e293b;
@@ -105,6 +112,7 @@ ipcMain.handle('window-close', () => mainWindow?.close())
 ```
 
 **Step 2: 创建全局样式文件**
+
 ```css
 /* main.css */
 * {
@@ -114,7 +122,8 @@ ipcMain.handle('window-close', () => mainWindow?.close())
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   overflow: hidden;
@@ -127,6 +136,7 @@ body {
 ```
 
 **Step 3: 在 main.ts 中引入样式**
+
 ```typescript
 import './styles/variables.css'
 import './styles/main.css'
@@ -139,10 +149,12 @@ import './styles/main.css'
 ### Task 4: 创建自定义标题栏组件
 
 **文件：**
+
 - 创建：`src/renderer/src/components/TitleBar/TitleBar.vue`
 - 创建：`src/renderer/src/components/TitleBar/TitleBar.css`
 
 **Step 1: 创建 TitleBar.vue**
+
 ```vue
 <template>
   <div class="title-bar">
@@ -169,6 +181,7 @@ const close = () => window.electron.ipcRenderer.invoke('window-close')
 ```
 
 **Step 2: 创建 TitleBar.css**
+
 ```css
 .title-bar {
   display: flex;
@@ -227,10 +240,12 @@ const close = () => window.electron.ipcRenderer.invoke('window-close')
 ### Task 5: 创建左侧导航栏组件
 
 **文件：**
+
 - 创建：`src/renderer/src/layout/BaseAside/BaseAside.vue`
 - 创建：`src/renderer/src/layout/BaseAside/BaseAside.css`
 
 **Step 1: 创建 BaseAside.vue**
+
 ```vue
 <template>
   <div class="base-aside">
@@ -266,6 +281,7 @@ const menuItems = ref([
 ```
 
 **Step 2: 创建 BaseAside.css**
+
 ```css
 .base-aside {
   width: 200px;
@@ -321,10 +337,12 @@ const menuItems = ref([
 ### Task 6: 配置 Vue Router
 
 **文件：**
+
 - 创建：`src/renderer/src/router/index.ts`
 - 修改：`src/renderer/src/main.ts`
 
 **Step 1: 创建路由配置**
+
 ```typescript
 import { createRouter, createWebHashHistory } from 'vue-router'
 
@@ -344,6 +362,7 @@ export default router
 ```
 
 **Step 2: 在 main.ts 中引入路由**
+
 ```typescript
 import router from './router'
 
@@ -355,10 +374,12 @@ app.use(router)
 ### Task 7: 配置 Pinia 状态管理
 
 **文件：**
+
 - 创建：`src/renderer/src/stores/download.ts`
 - 修改：`src/renderer/src/main.ts`
 
 **Step 1: 创建下载状态 store**
+
 ```typescript
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -382,7 +403,7 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   const updateProgress = (id: string, progress: number, speed: string) => {
-    const item = queue.value.find(i => i.id === id)
+    const item = queue.value.find((i) => i.id === id)
     if (item) {
       item.progress = progress
       item.speed = speed
@@ -390,7 +411,7 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   const updateStatus = (id: string, status: DownloadItem['status']) => {
-    const item = queue.value.find(i => i.id === id)
+    const item = queue.value.find((i) => i.id === id)
     if (item) {
       item.status = status
       if (status === 'completed') {
@@ -400,7 +421,7 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   const removeFromQueue = (id: string) => {
-    const index = queue.value.findIndex(i => i.id === id)
+    const index = queue.value.findIndex((i) => i.id === id)
     if (index > -1) {
       queue.value.splice(index, 1)
     }
@@ -418,6 +439,7 @@ export const useDownloadStore = defineStore('download', () => {
 ```
 
 **Step 2: 在 main.ts 中引入 Pinia**
+
 ```typescript
 import { createPinia } from 'pinia'
 
@@ -429,9 +451,11 @@ app.use(createPinia())
 ### Task 8: 更新 App.vue 主布局
 
 **文件：**
+
 - 修改：`src/renderer/src/App.vue`
 
 **Step 1: 更新 App.vue**
+
 ```vue
 <template>
   <div class="app">
@@ -477,10 +501,12 @@ import BaseAside from './layout/BaseAside/BaseAside.vue'
 ### Task 9: 更新 preload 脚本
 
 **文件：**
+
 - 修改：`src/preload/index.ts`
 - 修改：`src/preload/index.d.ts`
 
 **Step 1: 更新 preload index.ts**
+
 ```typescript
 import { contextBridge, ipcRenderer } from 'electron'
 
@@ -498,6 +524,7 @@ contextBridge.exposeInMainWorld('electron', {
 ```
 
 **Step 2: 更新类型定义**
+
 ```typescript
 export interface ElectronAPI {
   ipcRenderer: {
@@ -521,10 +548,12 @@ declare global {
 ### Task 10: 创建下载页面
 
 **文件：**
+
 - 创建：`src/renderer/src/views/DownloadView/DownloadView.vue`
 - 创建：`src/renderer/src/views/DownloadView/DownloadView.css`
 
 **Step 1: 创建 DownloadView.vue**
+
 ```vue
 <template>
   <div class="download-view">
@@ -554,15 +583,9 @@ declare global {
 
     <div class="card queue-card">
       <h2 class="card-title">下载队列</h2>
-      <div v-if="downloadStore.queue.length === 0" class="empty-state">
-        暂无下载任务
-      </div>
+      <div v-if="downloadStore.queue.length === 0" class="empty-state">暂无下载任务</div>
       <div v-else class="download-list">
-        <DownloadCard
-          v-for="item in downloadStore.queue"
-          :key="item.id"
-          :item="item"
-        />
+        <DownloadCard v-for="item in downloadStore.queue" :key="item.id" :item="item" />
       </div>
     </div>
   </div>
@@ -612,6 +635,7 @@ const addDownload = () => {
 ```
 
 **Step 2: 创建 DownloadView.css**
+
 ```css
 .download-view {
   display: flex;
@@ -732,10 +756,12 @@ const addDownload = () => {
 ### Task 11: 创建下载卡片组件
 
 **文件：**
+
 - 创建：`src/renderer/src/components/DownloadCard/DownloadCard.vue`
 - 创建：`src/renderer/src/components/DownloadCard/DownloadCard.css`
 
 **Step 1: 创建 DownloadCard.vue**
+
 ```vue
 <template>
   <div class="download-card">
@@ -752,15 +778,9 @@ const addDownload = () => {
       </div>
     </div>
     <div class="download-actions">
-      <button v-if="item.status === 'downloading'" @click="pause" class="action-btn">
-        暂停
-      </button>
-      <button v-else-if="item.status === 'paused'" @click="resume" class="action-btn">
-        继续
-      </button>
-      <button @click="cancel" class="action-btn danger">
-        取消
-      </button>
+      <button v-if="item.status === 'downloading'" @click="pause" class="action-btn">暂停</button>
+      <button v-else-if="item.status === 'paused'" @click="resume" class="action-btn">继续</button>
+      <button @click="cancel" class="action-btn danger">取消</button>
     </div>
   </div>
 </template>
@@ -805,6 +825,7 @@ const cancel = () => {
 ```
 
 **Step 2: 创建 DownloadCard.css**
+
 ```css
 .download-card {
   display: flex;
@@ -866,27 +887,27 @@ const cancel = () => {
   color: #dc2626;
 }
 
-[data-theme="dark"] .status-badge.pending {
+[data-theme='dark'] .status-badge.pending {
   background-color: #78350f;
   color: #fbbf24;
 }
 
-[data-theme="dark"] .status-badge.downloading {
+[data-theme='dark'] .status-badge.downloading {
   background-color: #1e3a8a;
   color: #60a5fa;
 }
 
-[data-theme="dark"] .status-badge.paused {
+[data-theme='dark'] .status-badge.paused {
   background-color: #334155;
   color: #94a3b8;
 }
 
-[data-theme="dark"] .status-badge.completed {
+[data-theme='dark'] .status-badge.completed {
   background-color: #14532d;
   color: #4ade80;
 }
 
-[data-theme="dark"] .status-badge.error {
+[data-theme='dark'] .status-badge.error {
   background-color: #7f1d1d;
   color: #f87171;
 }
@@ -945,7 +966,7 @@ const cancel = () => {
   border-color: #dc2626;
 }
 
-[data-theme="dark"] .action-btn.danger:hover {
+[data-theme='dark'] .action-btn.danger:hover {
   background-color: #7f1d1d;
   color: #f87171;
   border-color: #f87171;
@@ -957,6 +978,7 @@ const cancel = () => {
 ### Task 12: 创建其他页面（历史/设置/关于）
 
 由于篇幅限制，这三个页面的创建将遵循相同的模式：
+
 - 历史记录页面：展示已完成下载列表，提供打开文件/文件夹功能
 - 设置页面：提供主题切换、下载路径设置等
 - 关于页面：显示版本信息
@@ -968,9 +990,11 @@ const cancel = () => {
 ### Task 13: 创建下载器模块
 
 **文件：**
+
 - 创建：`src/main/downloader.ts`
 
 **Step 1: 创建 downloader.ts**
+
 ```typescript
 import { dialog } from 'electron'
 import { join } from 'path'
@@ -1009,10 +1033,12 @@ export class DownloadManager {
 ### Task 14: 添加 IPC 处理器
 
 **文件：**
+
 - 创建：`src/main/ipc-handlers.ts`
 - 修改：`src/main/index.ts`
 
 **Step 1: 创建 ipc-handlers.ts**
+
 ```typescript
 import { ipcMain } from 'electron'
 import { selectDirectory, DownloadManager } from './downloader'
@@ -1041,6 +1067,7 @@ export function registerIpcHandlers() {
 ```
 
 **Step 2: 在 main/index.ts 中注册 IPC**
+
 ```typescript
 import { registerIpcHandlers } from './ipc-handlers'
 
@@ -1055,9 +1082,11 @@ registerIpcHandlers()
 ### Task 15: 安装并配置 Element Plus
 
 **文件：**
+
 - 修改：`src/renderer/src/main.ts`
 
 **Step 1: 引入 Element Plus**
+
 ```typescript
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
@@ -1070,11 +1099,13 @@ app.use(ElementPlus)
 ### Task 16: 运行项目并测试
 
 **Step 1: 启动开发服务器**
+
 ```bash
 pnpm dev
 ```
 
 **Step 2: 验证功能**
+
 - 窗口无边框且可拖拽
 - 窗口控制按钮工作正常
 - 导航栏可切换页面

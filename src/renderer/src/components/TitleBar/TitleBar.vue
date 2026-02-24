@@ -7,8 +7,15 @@
       <button class="control-btn minimize" @click="minimize" title="最小化">
         <MinimizeIcon class="control-icon" />
       </button>
-      <button class="control-btn maximize" @click="maximize" :title="windowStore.isMaximized ? '还原' : '最大化'">
-        <component :is="windowStore.isMaximized ? Maximize2Icon : MaximizeIcon" class="control-icon" />
+      <button
+        class="control-btn maximize"
+        @click="maximize"
+        :title="windowStore.isMaximized ? '还原' : '最大化'"
+      >
+        <component
+          :is="windowStore.isMaximized ? Maximize2Icon : MaximizeIcon"
+          class="control-icon"
+        />
       </button>
       <button class="control-btn close" @click="close" title="关闭">
         <CloseIcon class="control-icon" />
@@ -23,9 +30,15 @@ import { MinimizeIcon, MaximizeIcon, Maximize2Icon, CloseIcon } from '@renderer/
 
 const windowStore = useWindowStore()
 
-const minimize = () => windowStore.minimize()
-const maximize = () => windowStore.toggleMaximize()
-const close = () => windowStore.close()
+function minimize(): void {
+  windowStore.minimize()
+}
+function maximize(): void {
+  windowStore.toggleMaximize()
+}
+function close(): void {
+  windowStore.close()
+}
 </script>
 
 <style scoped>
