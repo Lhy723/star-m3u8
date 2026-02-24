@@ -7,8 +7,8 @@
       <button class="control-btn minimize" @click="minimize" title="最小化">
         <MinimizeIcon class="control-icon" />
       </button>
-      <button class="control-btn maximize" @click="maximize" :title="isMaximized ? '还原' : '最大化'">
-        <component :is="isMaximized ? Maximize2Icon : MaximizeIcon" class="control-icon" />
+      <button class="control-btn maximize" @click="maximize" :title="windowStore.isMaximized ? '还原' : '最大化'">
+        <component :is="windowStore.isMaximized ? Maximize2Icon : MaximizeIcon" class="control-icon" />
       </button>
       <button class="control-btn close" @click="close" title="关闭">
         <CloseIcon class="control-icon" />
@@ -18,28 +18,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
 import { useWindowStore } from '@renderer/stores/window'
 import { MinimizeIcon, MaximizeIcon, Maximize2Icon, CloseIcon } from '@renderer/components/icons'
 
 const windowStore = useWindowStore()
-const isMaximized = ref(false)
 
 const minimize = () => windowStore.minimize()
 const maximize = () => windowStore.toggleMaximize()
 const close = () => windowStore.close()
-
-onMounted(async () => {
-  isMaximized.value = await window.electron?.ipcRenderer.invoke('is-maximized') || false
-  
-  window.electron?.ipcRenderer.on('window-maximized', () => {
-    isMaximized.value = true
-  })
-  
-  window.electron?.ipcRenderer.on('window-unmaximized', () => {
-    isMaximized.value = false
-  })
-})
 </script>
 
 <style scoped>

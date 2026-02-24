@@ -124,44 +124,6 @@
   height: 16px;
 }
 
-.select-wrapper {
-  position: relative;
-}
-
-.form-select {
-  width: 100%;
-  padding: 12px 40px 12px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 14px;
-  cursor: pointer;
-  appearance: none;
-  transition: all var(--transition-fast);
-}
-
-.form-select:hover {
-  border-color: var(--text-muted);
-}
-
-.form-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-bg);
-}
-
-.select-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: var(--text-muted);
-  pointer-events: none;
-}
-
 .btn-primary {
   display: flex;
   align-items: center;

@@ -27,15 +27,11 @@
         </div>
         
         <div class="form-group">
-          <label for="theme">主题</label>
-          <div class="select-wrapper">
-            <select id="theme" class="form-select">
-              <option value="light">浅色</option>
-              <option value="dark">深色</option>
-              <option value="auto">跟随系统</option>
-            </select>
-            <ChevronDownIcon class="select-icon" />
-          </div>
+          <label>主题</label>
+          <CustomSelect
+            v-model="theme"
+            :options="themeOptions"
+          />
         </div>
       </div>
       
@@ -43,30 +39,19 @@
         <h3 class="section-title">下载设置</h3>
         
         <div class="form-group">
-          <label for="concurrent">并发连接数</label>
-          <div class="select-wrapper">
-            <select id="concurrent" class="form-select">
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="4" selected>4</option>
-              <option value="8">8</option>
-              <option value="16">16</option>
-            </select>
-            <ChevronDownIcon class="select-icon" />
-          </div>
+          <label>并发连接数</label>
+          <CustomSelect
+            v-model="concurrent"
+            :options="concurrentOptions"
+          />
         </div>
         
         <div class="form-group">
-          <label for="retry">重试次数</label>
-          <div class="select-wrapper">
-            <select id="retry" class="form-select">
-              <option value="0">不重试</option>
-              <option value="3" selected>3 次</option>
-              <option value="5">5 次</option>
-              <option value="10">10 次</option>
-            </select>
-            <ChevronDownIcon class="select-icon" />
-          </div>
+          <label>重试次数</label>
+          <CustomSelect
+            v-model="retry"
+            :options="retryOptions"
+          />
         </div>
       </div>
       
@@ -79,12 +64,38 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import {
   SettingsIcon,
   FolderIcon,
-  ChevronDownIcon,
   CheckCircleIcon
 } from '@renderer/components/icons'
+import CustomSelect from '@renderer/components/CustomSelect/CustomSelect.vue'
+
+const theme = ref('auto')
+const concurrent = ref('4')
+const retry = ref('3')
+
+const themeOptions = [
+  { value: 'light', label: '浅色' },
+  { value: 'dark', label: '深色' },
+  { value: 'auto', label: '跟随系统' }
+]
+
+const concurrentOptions = [
+  { value: '1', label: '1 个连接' },
+  { value: '2', label: '2 个连接' },
+  { value: '4', label: '4 个连接' },
+  { value: '8', label: '8 个连接' },
+  { value: '16', label: '16 个连接' }
+]
+
+const retryOptions = [
+  { value: '0', label: '不重试' },
+  { value: '3', label: '重试 3 次' },
+  { value: '5', label: '重试 5 次' },
+  { value: '10', label: '重试 10 次' }
+]
 </script>
 
 <style scoped>

@@ -4,7 +4,11 @@
     <div class="app-content">
       <BaseAside />
       <main class="app-main">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page-fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       </main>
     </div>
   </div>
@@ -45,5 +49,35 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 32px;
+}
+
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.25s ease, filter 0.25s ease, transform 0.25s ease;
+}
+
+.page-fade-enter-from {
+  opacity: 0;
+  filter: blur(8px);
+  transform: scale(0.98);
+}
+
+.page-fade-leave-to {
+  opacity: 0;
+  filter: blur(8px);
+  transform: scale(1.02);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-fade-enter-active,
+  .page-fade-leave-active {
+    transition: opacity 0.15s ease;
+  }
+  
+  .page-fade-enter-from,
+  .page-fade-leave-to {
+    filter: none;
+    transform: none;
+  }
 }
 </style>
