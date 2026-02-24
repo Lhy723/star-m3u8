@@ -1,45 +1,120 @@
 .base-aside {
-  width: 200px;
+  width: 220px;
   height: 100%;
   background-color: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+}
+
+.app-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.logo-icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .nav-menu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  flex: 1;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 12px 14px;
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .nav-item:hover {
-  background-color: var(--bg-card);
+  background-color: var(--bg-hover);
   color: var(--text-primary);
 }
 
 .nav-item.active {
-  background-color: var(--bg-card);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+.nav-item.active .nav-icon {
+  color: var(--color-primary);
 }
 
 .nav-icon {
-  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .nav-label {
+  white-space: nowrap;
+}
+
+.aside-footer {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.theme-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-label {
+  white-space: nowrap;
 }

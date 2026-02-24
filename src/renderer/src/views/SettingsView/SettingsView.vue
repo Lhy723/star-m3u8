@@ -1,92 +1,92 @@
 <template>
   <div class="settings-view">
     <div class="card">
-      <h2 class="card-title">设置</h2>
-      <div class="form-group">
-        <label>默认下载路径</label>
-        <input type="text" placeholder="选择默认下载路径..." />
+      <h2 class="card-title">
+        <SettingsIcon class="title-icon" />
+        设置
+      </h2>
+      
+      <div class="settings-section">
+        <h3 class="section-title">常规设置</h3>
+        
+        <div class="form-group">
+          <label for="download-path">默认下载路径</label>
+          <div class="path-input">
+            <input
+              id="download-path"
+              type="text"
+              placeholder="选择默认下载路径..."
+              class="form-input"
+              readonly
+            />
+            <button class="btn-browse">
+              <FolderIcon class="btn-icon" />
+              浏览
+            </button>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="theme">主题</label>
+          <div class="select-wrapper">
+            <select id="theme" class="form-select">
+              <option value="light">浅色</option>
+              <option value="dark">深色</option>
+              <option value="auto">跟随系统</option>
+            </select>
+            <ChevronDownIcon class="select-icon" />
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label>主题</label>
-        <select class="form-select">
-          <option>浅色</option>
-          <option>深色</option>
-          <option>自动</option>
-        </select>
+      
+      <div class="settings-section">
+        <h3 class="section-title">下载设置</h3>
+        
+        <div class="form-group">
+          <label for="concurrent">并发连接数</label>
+          <div class="select-wrapper">
+            <select id="concurrent" class="form-select">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="4" selected>4</option>
+              <option value="8">8</option>
+              <option value="16">16</option>
+            </select>
+            <ChevronDownIcon class="select-icon" />
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="retry">重试次数</label>
+          <div class="select-wrapper">
+            <select id="retry" class="form-select">
+              <option value="0">不重试</option>
+              <option value="3" selected>3 次</option>
+              <option value="5">5 次</option>
+              <option value="10">10 次</option>
+            </select>
+            <ChevronDownIcon class="select-icon" />
+          </div>
+        </div>
       </div>
-      <button class="btn-primary">保存设置</button>
+      
+      <button class="btn-primary">
+        <CheckCircleIcon class="btn-icon" />
+        保存设置
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import {
+  SettingsIcon,
+  FolderIcon,
+  ChevronDownIcon,
+  CheckCircleIcon
+} from '@renderer/components/icons'
 </script>
 
 <style scoped>
-.settings-view {
-  display: flex;
-  flex-direction: column;
-}
-
-.card {
-  background-color: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-color);
-}
-
-.card-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  color: var(--text-primary);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: var(--text-secondary);
-}
-
-.form-group input,
-.form-select {
-  width: 100%;
-  padding: 12px 16px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-  font-size: 14px;
-  transition: all 0.2s ease;
-}
-
-.form-group input:focus,
-.form-select:focus {
-  outline: none;
-  border-color: #3b82f6;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 14px 24px;
-  border: none;
-  border-radius: var(--radius-md);
-  background-color: #3b82f6;
-  color: white;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-primary:hover {
-  background-color: #2563eb;
-}
+@import './SettingsView.css';
 </style>

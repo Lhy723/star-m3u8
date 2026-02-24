@@ -16,35 +16,42 @@
 }
 
 .title-bar-title {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--text-secondary);
+  letter-spacing: 0.3px;
 }
 
 .title-bar-controls {
   display: flex;
-  gap: 4px;
-  padding-right: 8px;
+  height: 100%;
   -webkit-app-region: no-drag;
 }
 
 .control-btn {
-  width: 40px;
-  height: 32px;
+  width: 46px;
+  height: 100%;
   border: none;
   background: transparent;
   color: var(--text-secondary);
-  font-size: 14px;
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
 }
 
 .control-btn:hover {
-  background-color: var(--bg-card);
+  background-color: var(--bg-hover);
+  color: var(--text-primary);
 }
 
 .control-btn.close:hover {
-  background-color: #ef4444;
+  background-color: #e53935;
   color: white;
+}
+
+.control-icon {
+  width: 16px;
+  height: 16px;
 }

@@ -1,33 +1,71 @@
 <template>
   <div class="download-view">
     <div class="card add-card">
-      <h2 class="card-title">添加下载</h2>
+      <h2 class="card-title">
+        <DownloadIcon class="title-icon" />
+        添加下载
+      </h2>
       <div class="form-group">
-        <label>M3U8 链接</label>
-        <input v-model="url" type="text" placeholder="输入 M3U8 链接..." />
+        <label for="url">M3U8 链接</label>
+        <input
+          id="url"
+          v-model="url"
+          type="text"
+          placeholder="输入 M3U8 链接..."
+          class="form-input"
+        />
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>文件名</label>
-          <input v-model="filename" type="text" placeholder="video.mp4" />
+          <label for="filename">文件名</label>
+          <input
+            id="filename"
+            v-model="filename"
+            type="text"
+            placeholder="video.mp4"
+            class="form-input"
+          />
         </div>
         <div class="form-group">
-          <label>下载路径</label>
+          <label for="path">下载路径</label>
           <div class="path-input">
-            <input v-model="downloadPath" type="text" placeholder="选择下载路径..." readonly />
-            <button @click="selectPath">浏览</button>
+            <input
+              id="path"
+              v-model="downloadPath"
+              type="text"
+              placeholder="选择下载路径..."
+              readonly
+              class="form-input"
+            />
+            <button class="btn-browse" @click="selectPath">
+              <FolderIcon class="btn-icon" />
+              浏览
+            </button>
           </div>
         </div>
       </div>
-      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadPath">
+      <button
+        class="btn-primary"
+        @click="addDownload"
+        :disabled="!url || !downloadPath"
+      >
+        <ZapIcon class="btn-icon" />
         添加到队列
       </button>
     </div>
 
     <div class="card queue-card">
-      <h2 class="card-title">下载队列</h2>
+      <h2 class="card-title">
+        <LayoutPanelTopIcon class="title-icon" />
+        下载队列
+        <span v-if="downloadStore.queue.length > 0" class="queue-count">
+          {{ downloadStore.queue.length }}
+        </span>
+      </h2>
       <div v-if="downloadStore.queue.length === 0" class="empty-state">
-        暂无下载任务
+        <FileIcon class="empty-icon" />
+        <p>暂无下载任务</p>
+        <span>添加 M3U8 链接开始下载</span>
       </div>
       <div v-else class="download-list">
         <DownloadCard
@@ -44,6 +82,13 @@
 import { ref } from 'vue'
 import { useDownloadStore } from '../../stores/download'
 import DownloadCard from '../../components/DownloadCard/DownloadCard.vue'
+import {
+  DownloadIcon,
+  FolderIcon,
+  ZapIcon,
+  LayoutPanelTopIcon,
+  FileIcon
+} from '@renderer/components/icons'
 
 const downloadStore = useDownloadStore()
 const url = ref('')
