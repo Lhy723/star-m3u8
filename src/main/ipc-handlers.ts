@@ -4,6 +4,8 @@ import { selectDirectory, DownloadManager } from './downloader'
 const downloadManager = new DownloadManager()
 
 export function setupWindowEvents(win: BrowserWindow) {
+  downloadManager.setMainWindow(win)
+
   const sendWindowState = () => {
     if (!win.isDestroyed()) {
       win.webContents.send('window-state-changed', {

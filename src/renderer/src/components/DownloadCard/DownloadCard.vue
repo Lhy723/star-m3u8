@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { DownloadItem } from '../../stores/download'
+import { useDownloadStore } from '../../stores/download'
 import {
   PauseIcon,
   PlayIcon,
@@ -67,6 +68,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const downloadStore = useDownloadStore()
 
 const statusText = computed(() => {
   const map: Record<string, string> = {
@@ -98,15 +100,15 @@ const statusBadgeIcon = computed(() => {
 })
 
 const pause = () => {
-  window.electron?.ipcRenderer.send('pause-download', props.item.id)
+  downloadStore.pauseDownload(props.item.id)
 }
 
 const resume = () => {
-  window.electron?.ipcRenderer.send('resume-download', props.item.id)
+  downloadStore.resumeDownload(props.item.id)
 }
 
 const cancel = () => {
-  window.electron?.ipcRenderer.send('cancel-download', props.item.id)
+  downloadStore.cancelDownload(props.item.id)
 }
 </script>
 

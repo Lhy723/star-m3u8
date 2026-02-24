@@ -96,7 +96,7 @@ const filename = ref('video.mp4')
 const downloadPath = ref('')
 
 const selectPath = async () => {
-  const path = await window.electron?.ipcRenderer.invoke('select-directory')
+  const path = await downloadStore.selectDirectory()
   if (path) {
     downloadPath.value = path
   }
@@ -116,7 +116,6 @@ const addDownload = () => {
   }
 
   downloadStore.addToQueue(item)
-  window.electron?.ipcRenderer.send('start-download', item)
 
   url.value = ''
   filename.value = 'video.mp4'

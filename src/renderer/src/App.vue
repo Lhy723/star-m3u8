@@ -19,15 +19,19 @@ import { onMounted, onUnmounted } from 'vue'
 import TitleBar from './components/TitleBar/TitleBar.vue'
 import BaseAside from './layout/BaseAside/BaseAside.vue'
 import { useWindowStore } from '@renderer/stores/window'
+import { useDownloadStore } from '@renderer/stores/download'
 
 const windowStore = useWindowStore()
+const downloadStore = useDownloadStore()
 
 onMounted(() => {
   windowStore.init()
+  downloadStore.init()
 })
 
 onUnmounted(() => {
   windowStore.dispose()
+  downloadStore.dispose()
 })
 </script>
 
