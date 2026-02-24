@@ -31,7 +31,7 @@
           <div class="path-input">
             <input
               id="path"
-              v-model="downloadPath"
+              v-model="downloadStore.defaultPath"
               type="text"
               placeholder="选择下载路径..."
               readonly
@@ -44,7 +44,7 @@
           </div>
         </div>
       </div>
-      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadPath">
+      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadStore.defaultPath">
         <ZapIcon class="btn-icon" />
         添加到队列
       </button>
@@ -85,23 +85,19 @@ import {
 const downloadStore = useDownloadStore()
 const url = ref('')
 const filename = ref('video.mp4')
-const downloadPath = ref('')
 
 async function selectPath(): Promise<void> {
-  const path = await downloadStore.selectDirectory()
-  if (path) {
-    downloadPath.value = path
-  }
+  await downloadStore.selectDirectory()
 }
 
 function addDownload(): void {
-  if (!url.value || !downloadPath.value) return
+  if (!url.value || !downloadStore.defaultPath) return
 
   const item = {
     id: Date.now().toString(),
     url: url.value,
     filename: filename.value,
-    savePath: downloadPath.value,
+    savePath: downloadStore.defaultPath,
     progress: 0,
     speed: '0 KB/s',
     status: 'pending' as const

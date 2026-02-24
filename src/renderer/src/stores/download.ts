@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 export interface DownloadItem {
   id: string
@@ -33,12 +33,36 @@ interface ErrorData {
   error: string
 }
 
+const STORAGE_KEY = 'star-m3u8-settings'
+
+function loadSettings(): { defaultPath: string } {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      return JSON.parse(saved)
+    }
+  } catch {
+    // ignore
+  }
+  return { defaultPath: '' }
+}
+
+function saveSettings(settings: { defaultPath: string }): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+}
+
 export const useDownloadStore = defineStore('download', () => {
+  const settings = loadSettings()
+  const defaultPath = ref(settings.defaultPath)
   const queue = ref<DownloadItem[]>([])
   const history = ref<DownloadItem[]>([])
   let unsubscribeProgress: (() => void) | null = null
   let unsubscribeStatus: (() => void) | null = null
   let unsubscribeError: (() => void) | null = null
+
+  watch(defaultPath, (newPath) => {
+    saveSettings({ defaultPath: newPath })
+  })
 
   function addToQueue(item: DownloadItem): void {
     console.log('[DownloadStore] Adding to queue:', item)
@@ -105,7 +129,19 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   async function selectDirectory(): Promise<string | null> {
-    return ((await window.electron?.ipcRenderer.invoke('select-directory')) as string) || null
+    const path = ((await window.electron?.ipcRenderer.invoke('select-directory')) as string) || null
+    if (path) {
+      defaultPath.value = path
+    }
+    return path
+  }
+
+  async function openFile(filePath: string): Promise<void> {
+    await window.electron?.ipcRenderer.invoke('open-file', filePath)
+  }
+
+  async function openFolder(folderPath: string): Promise<void> {
+    await window.electron?.ipcRenderer.invoke('open-folder', folderPath)
   }
 
   function init(): void {
@@ -150,6 +186,7 @@ export const useDownloadStore = defineStore('download', () => {
   }
 
   return {
+    defaultPath,
     queue,
     history,
     addToQueue,
@@ -160,6 +197,8 @@ export const useDownloadStore = defineStore('download', () => {
     resumeDownload,
     cancelDownload,
     selectDirectory,
+    openFile,
+    openFolder,
     init,
     dispose
   }

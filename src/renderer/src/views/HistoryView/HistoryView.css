@@ -80,10 +80,10 @@
 }
 
 .history-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background-color: rgba(34, 197, 94, 0.1);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -91,8 +91,8 @@
 }
 
 .history-icon .icon {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   color: var(--color-success);
 }
 
@@ -106,7 +106,7 @@
   font-size: 14px;
   font-weight: 500;
   color: var(--text-primary);
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -118,6 +118,12 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.history-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .action-btn {
@@ -132,13 +138,18 @@
   align-items: center;
   justify-content: center;
   transition: all var(--transition-fast);
-  flex-shrink: 0;
 }
 
 .action-btn:hover {
-  background-color: var(--bg-hover);
-  color: var(--text-primary);
-  border-color: var(--text-muted);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: var(--color-primary-bg);
+}
+
+.action-btn.play:hover {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  background-color: rgba(34, 197, 94, 0.1);
 }
 
 .action-icon {

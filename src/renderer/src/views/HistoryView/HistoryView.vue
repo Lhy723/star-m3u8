@@ -20,7 +20,10 @@
             <span class="history-path">{{ item.savePath }}</span>
           </div>
           <div class="history-actions">
-            <button class="action-btn" title="打开文件夹">
+            <button class="action-btn play" title="打开文件" @click="openFile(item)">
+              <PlayIcon class="action-icon" />
+            </button>
+            <button class="action-btn" title="打开文件夹" @click="openFolder(item)">
               <FolderIcon class="action-icon" />
             </button>
           </div>
@@ -32,9 +35,30 @@
 
 <script setup lang="ts">
 import { useDownloadStore } from '../../stores/download'
-import { HistoryIcon, FileCheckIcon, CheckCircleIcon, FolderIcon } from '@renderer/components/icons'
+import type { DownloadItem } from '../../stores/download'
+import {
+  HistoryIcon,
+  FileCheckIcon,
+  CheckCircleIcon,
+  FolderIcon,
+  PlayIcon
+} from '@renderer/components/icons'
 
 const downloadStore = useDownloadStore()
+
+function getFilePath(item: DownloadItem): string {
+  const filename = item.filename.endsWith('.mp4') ? item.filename : `${item.filename}.mp4`
+  return `${item.savePath}\\${filename}`
+}
+
+function openFile(item: DownloadItem): void {
+  const filePath = getFilePath(item)
+  downloadStore.openFile(filePath)
+}
+
+function openFolder(item: DownloadItem): void {
+  downloadStore.openFolder(item.savePath)
+}
 </script>
 
 <style scoped>

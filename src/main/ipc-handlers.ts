@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow, shell } from 'electron'
 import { selectDirectory, DownloadManager } from './downloader'
 
 const downloadManager = new DownloadManager()
@@ -55,6 +55,22 @@ export function setupWindowEvents(win: BrowserWindow): void {
 
 export function registerIpcHandlers(): void {
   ipcMain.handle('select-directory', () => selectDirectory())
+
+  ipcMain.handle('open-file', async (_event, filePath: string) => {
+    try {
+      await shell.openPath(filePath)
+    } catch (error) {
+      console.error('Failed to open file:', error)
+    }
+  })
+
+  ipcMain.handle('open-folder', async (_event, folderPath: string) => {
+    try {
+      await shell.openPath(folderPath)
+    } catch (error) {
+      console.error('Failed to open folder:', error)
+    }
+  })
 
   ipcMain.on('start-download', (_event, item) => {
     downloadManager.startDownload(item)
