@@ -1,12 +1,13 @@
-import { ipcMain, BrowserWindow, shell } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import { selectDirectory, DownloadManager } from './downloader'
+import { getSettings, updateSettings, resetSettings } from './settings'
 
 const downloadManager = new DownloadManager()
 
-export function setupWindowEvents(win: BrowserWindow): void {
+export function setupWindowEvents(win: BrowserWindow) {
   downloadManager.setMainWindow(win)
 
-  function sendWindowState(): void {
+  const sendWindowState = () => {
     if (!win.isDestroyed()) {
       win.webContents.send('window-state-changed', {
         isMaximized: win.isMaximized(),
@@ -53,25 +54,11 @@ export function setupWindowEvents(win: BrowserWindow): void {
   win.on('blur', sendWindowState)
 }
 
-export function registerIpcHandlers(): void {
+export function registerIpcHandlers() {
+  // 目录选择
   ipcMain.handle('select-directory', () => selectDirectory())
 
-  ipcMain.handle('open-file', async (_event, filePath: string) => {
-    try {
-      await shell.openPath(filePath)
-    } catch (error) {
-      console.error('Failed to open file:', error)
-    }
-  })
-
-  ipcMain.handle('open-folder', async (_event, folderPath: string) => {
-    try {
-      await shell.openPath(folderPath)
-    } catch (error) {
-      console.error('Failed to open folder:', error)
-    }
-  })
-
+  // 下载相关
   ipcMain.on('start-download', (_event, item) => {
     downloadManager.startDownload(item)
   })
@@ -86,5 +73,16 @@ export function registerIpcHandlers(): void {
 
   ipcMain.on('cancel-download', (_event, id) => {
     downloadManager.cancelDownload(id)
+  })
+
+  // 设置相关
+  ipcMain.handle('get-settings', () => getSettings())
+
+  ipcMain.on('update-settings', (_event, settings) => {
+    updateSettings(settings)
+  })
+
+  ipcMain.on('reset-settings', () => {
+    resetSettings()
   })
 }

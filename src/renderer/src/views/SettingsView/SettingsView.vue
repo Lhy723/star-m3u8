@@ -14,12 +14,13 @@
           <div class="path-input">
             <input
               id="download-path"
+              v-model="settingsStore.defaultDownloadPath"
               type="text"
               placeholder="选择默认下载路径..."
               class="form-input"
               readonly
             />
-            <button class="btn-browse">
+            <button class="btn-browse" @click="selectDownloadPath">
               <FolderIcon class="btn-icon" />
               浏览
             </button>
@@ -28,7 +29,7 @@
 
         <div class="form-group">
           <label>主题</label>
-          <CustomSelect v-model="theme" :options="themeOptions" />
+          <CustomSelect v-model="settingsStore.theme" :options="themeOptions" />
         </div>
       </div>
 
@@ -37,16 +38,16 @@
 
         <div class="form-group">
           <label>并发连接数</label>
-          <CustomSelect v-model="concurrent" :options="concurrentOptions" />
+          <CustomSelect v-model="settingsStore.concurrent" :options="concurrentOptions" />
         </div>
 
         <div class="form-group">
           <label>重试次数</label>
-          <CustomSelect v-model="retry" :options="retryOptions" />
+          <CustomSelect v-model="settingsStore.retry" :options="retryOptions" />
         </div>
       </div>
 
-      <button class="btn-primary">
+      <button class="btn-primary" @click="saveSettings">
         <CheckCircleIcon class="btn-icon" />
         保存设置
       </button>
@@ -55,13 +56,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted } from 'vue'
+import { useSettingsStore } from '@renderer/stores/settings'
+import { useDownloadStore } from '@renderer/stores/download'
 import { SettingsIcon, FolderIcon, CheckCircleIcon } from '@renderer/components/icons'
 import CustomSelect from '@renderer/components/CustomSelect/CustomSelect.vue'
 
-const theme = ref('auto')
-const concurrent = ref('4')
-const retry = ref('3')
+const settingsStore = useSettingsStore()
+const downloadStore = useDownloadStore()
 
 const themeOptions = [
   { value: 'light', label: '浅色' },
@@ -83,6 +85,21 @@ const retryOptions = [
   { value: '5', label: '重试 5 次' },
   { value: '10', label: '重试 10 次' }
 ]
+
+const selectDownloadPath = async () => {
+  const path = await downloadStore.selectDirectory()
+  if (path) {
+    settingsStore.defaultDownloadPath = path
+  }
+}
+
+const saveSettings = () => {
+  settingsStore.saveSettings()
+}
+
+onMounted(() => {
+  settingsStore.loadSettings()
+})
 </script>
 
 <style scoped>

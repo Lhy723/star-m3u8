@@ -31,7 +31,7 @@
           <div class="path-input">
             <input
               id="path"
-              v-model="downloadStore.defaultPath"
+              v-model="downloadPath"
               type="text"
               placeholder="选择下载路径..."
               readonly
@@ -44,7 +44,7 @@
           </div>
         </div>
       </div>
-      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadStore.defaultPath">
+      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadPath">
         <ZapIcon class="btn-icon" />
         添加到队列
       </button>
@@ -71,8 +71,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useDownloadStore } from '../../stores/download'
+import { useSettingsStore } from '../../stores/settings'
 import DownloadCard from '../../components/DownloadCard/DownloadCard.vue'
 import {
   DownloadIcon,
@@ -83,21 +84,26 @@ import {
 } from '@renderer/components/icons'
 
 const downloadStore = useDownloadStore()
+const settingsStore = useSettingsStore()
 const url = ref('')
 const filename = ref('video.mp4')
+const downloadPath = ref('')
 
-async function selectPath(): Promise<void> {
-  await downloadStore.selectDirectory()
+const selectPath = async () => {
+  const path = await downloadStore.selectDirectory()
+  if (path) {
+    downloadPath.value = path
+  }
 }
 
-function addDownload(): void {
-  if (!url.value || !downloadStore.defaultPath) return
+const addDownload = () => {
+  if (!url.value || !downloadPath.value) return
 
   const item = {
     id: Date.now().toString(),
     url: url.value,
     filename: filename.value,
-    savePath: downloadStore.defaultPath,
+    path: downloadPath.value,
     progress: 0,
     speed: '0 KB/s',
     status: 'pending' as const
@@ -108,6 +114,11 @@ function addDownload(): void {
   url.value = ''
   filename.value = 'video.mp4'
 }
+
+onMounted(async () => {
+  await settingsStore.loadSettings()
+  downloadPath.value = settingsStore.defaultDownloadPath
+})
 </script>
 
 <style scoped>

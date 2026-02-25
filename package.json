@@ -26,6 +26,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "axios": "^1.13.5",
+    "electron-store": "^8.2.0",
     "electron-updater": "^6.3.9",
     "element-plus": "^2.13.2",
     "fluent-ffmpeg": "^2.1.3",
