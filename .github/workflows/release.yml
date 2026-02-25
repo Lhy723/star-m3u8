@@ -68,8 +68,8 @@ jobs:
       - name: Remove npm mirror config for CI
         run: |
           if [ -f .npmrc ]; then
-            sed -i '/electron_mirror/d' .npmrc
-            sed -i '/electron_builder_binaries_mirror/d' .npmrc
+            grep -v "electron_mirror" .npmrc > .npmrc.tmp && mv .npmrc.tmp .npmrc || true
+            grep -v "electron_builder_binaries_mirror" .npmrc > .npmrc.tmp && mv .npmrc.tmp .npmrc || true
           fi
         shell: bash
 
