@@ -22,7 +22,7 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             build_cmd: pnpm build:linux
-            artifact_pattern: 'dist/*.AppImage,dist/*.deb,dist/*.snap'
+            artifact_pattern: 'dist/*.AppImage,dist/*.deb'
 
     runs-on: ${{ matrix.os }}
 
@@ -62,7 +62,7 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libarchive-tools rpm snapcraft
+          sudo apt-get install -y libarchive-tools rpm
 
       # 安装依赖
       - name: Install dependencies
@@ -88,7 +88,6 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
-            dist/*.snap
             dist/*.yml
             dist/*.blockmap
           if-no-files-found: warn
@@ -142,7 +141,6 @@ jobs:
             dist/*.dmg
             dist/*.AppImage
             dist/*.deb
-            dist/*.snap
             dist/*.yml
             dist/*.blockmap
         env:
