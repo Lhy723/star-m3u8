@@ -77,6 +77,43 @@
   z-index: 2;
 }
 
+/* 滑动指示器 - 立体质感 */
+.nav-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 148, 136, 0.15) 0%,
+    rgba(20, 184, 166, 0.1) 100%
+  );
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(13, 148, 136, 0.2);
+  box-shadow:
+    0 2px 4px rgba(13, 148, 136, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transition:
+    top 0.35s cubic-bezier(0.34, 1.25, 0.64, 1),
+    height 0.25s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 深色模式指示器 */
+[data-theme='dark'] .nav-indicator {
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.12) 0%,
+    rgba(94, 234, 212, 0.08) 100%
+  );
+  border-color: rgba(45, 212, 191, 0.15);
+  box-shadow:
+    0 2px 4px rgba(45, 212, 191, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -85,47 +122,20 @@
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
-  transition: all var(--transition-normal);
+  transition: color var(--transition-normal);
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   position: relative;
-  overflow: hidden;
-}
-
-.nav-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    var(--glass-highlight) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-  border-radius: var(--radius-md);
-}
-
-.nav-item:hover::before {
-  opacity: 1;
+  z-index: 1;
 }
 
 .nav-item:hover {
-  background-color: var(--glass-hover);
   color: var(--text-primary);
 }
 
 .nav-item.active {
-  background-color: var(--color-primary-bg);
   color: var(--color-primary);
-}
-
-.nav-item.active::before {
-  opacity: 0;
 }
 
 .nav-item.active .nav-icon {
@@ -209,4 +219,11 @@
   white-space: nowrap;
   position: relative;
   z-index: 1;
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  .nav-indicator {
+    transition: none;
+  }
 }
