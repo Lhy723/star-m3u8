@@ -16,20 +16,11 @@
   margin-bottom: 20px;
 }
 
-.logo-icon {
+.logo-image {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.logo-icon .icon {
-  width: 20px;
-  height: 20px;
+  object-fit: contain;
 }
 
 .logo-text {

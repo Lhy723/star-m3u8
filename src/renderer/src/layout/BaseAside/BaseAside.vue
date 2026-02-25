@@ -1,9 +1,7 @@
 <template>
   <div class="base-aside">
     <div class="app-logo">
-      <div class="logo-icon">
-        <ZapIcon class="icon" />
-      </div>
+      <img src="@renderer/assets/logo.png" alt="Logo" class="logo-image" />
       <span class="logo-text">Star M3U8</span>
     </div>
     <nav class="nav-menu">
@@ -35,8 +33,7 @@ import {
   SettingsIcon,
   InfoIcon,
   MoonIcon,
-  SunIcon,
-  ZapIcon
+  SunIcon
 } from '@renderer/components/icons'
 
 const isDark = ref(false)

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron'
+import { contextBridge, ipcRenderer, IpcRendererEvent, shell } from 'electron'
 
 type IpcListener = (...args: unknown[]) => void
 
@@ -14,5 +14,7 @@ contextBridge.exposeInMainWorld('electron', {
         ipcRenderer.removeListener(channel, subscription)
       }
     }
-  }
+  },
+  // 在默认浏览器中打开外部链接
+  openExternal: (url: string): Promise<void> => shell.openExternal(url)
 })
