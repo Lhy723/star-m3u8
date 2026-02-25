@@ -99,17 +99,15 @@ const selectPath = async () => {
 const addDownload = () => {
   if (!url.value || !downloadPath.value) return
 
-  const item = {
+  downloadStore.addToQueue({
     id: Date.now().toString(),
     url: url.value,
     filename: filename.value,
-    path: downloadPath.value,
+    savePath: downloadPath.value,
     progress: 0,
     speed: '0 KB/s',
-    status: 'pending' as const
-  }
-
-  downloadStore.addToQueue(item)
+    status: 'pending'
+  })
 
   url.value = ''
   filename.value = 'video.mp4'

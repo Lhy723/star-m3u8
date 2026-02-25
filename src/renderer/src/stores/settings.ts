@@ -15,7 +15,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const retry = ref('3')
 
   const loadSettings = async () => {
-    const settings = await window.electron?.ipcRenderer.invoke('get-settings')
+    const settings = (await window.electron?.ipcRenderer.invoke('get-settings')) as AppSettings | undefined
     if (settings) {
       defaultDownloadPath.value = settings.defaultDownloadPath || ''
       theme.value = settings.theme || 'auto'
