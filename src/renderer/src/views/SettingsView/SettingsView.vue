@@ -86,14 +86,14 @@ const retryOptions = [
   { value: '10', label: '重试 10 次' }
 ]
 
-const selectDownloadPath = async () => {
+const selectDownloadPath = async (): Promise<void> => {
   const path = await downloadStore.selectDirectory()
   if (path) {
     settingsStore.defaultDownloadPath = path
   }
 }
 
-const saveSettings = () => {
+const saveSettings = (): void => {
   settingsStore.saveSettings()
 }
 

@@ -44,7 +44,7 @@
           </div>
         </div>
       </div>
-      <button class="btn-primary" @click="addDownload" :disabled="!url || !downloadPath">
+      <button class="btn-primary" :disabled="!url || !downloadPath" @click="addDownload">
         <ZapIcon class="btn-icon" />
         添加到队列
       </button>
@@ -89,14 +89,14 @@ const url = ref('')
 const filename = ref('video.mp4')
 const downloadPath = ref('')
 
-const selectPath = async () => {
+const selectPath = async (): Promise<void> => {
   const path = await downloadStore.selectDirectory()
   if (path) {
     downloadPath.value = path
   }
 }
 
-const addDownload = () => {
+const addDownload = (): void => {
   if (!url.value || !downloadPath.value) return
 
   downloadStore.addToQueue({

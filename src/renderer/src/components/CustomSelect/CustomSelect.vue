@@ -1,10 +1,10 @@
 <template>
-  <div class="custom-select" ref="selectRef">
+  <div ref="selectRef" class="custom-select">
     <button
       type="button"
       class="select-trigger"
-      @click="toggleDropdown"
       :class="{ 'is-open': isOpen }"
+      @click="toggleDropdown"
     >
       <span class="select-value">{{ selectedLabel }}</span>
       <ChevronDownIcon class="select-arrow" :class="{ 'is-open': isOpen }" />

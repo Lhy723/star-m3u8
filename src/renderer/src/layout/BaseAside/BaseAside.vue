@@ -19,7 +19,7 @@
       </router-link>
     </nav>
     <div class="aside-footer">
-      <button class="theme-toggle" @click="toggleTheme" :title="themeTitle">
+      <button class="theme-toggle" :title="themeTitle" @click="toggleTheme">
         <component :is="isDark ? SunIcon : MoonIcon" class="theme-icon" />
         <span class="theme-label">{{ isDark ? '浅色模式' : '深色模式' }}</span>
       </button>

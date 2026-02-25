@@ -14,8 +14,10 @@ export const useSettingsStore = defineStore('settings', () => {
   const concurrent = ref('4')
   const retry = ref('3')
 
-  const loadSettings = async () => {
-    const settings = (await window.electron?.ipcRenderer.invoke('get-settings')) as AppSettings | undefined
+  const loadSettings = async (): Promise<void> => {
+    const settings = (await window.electron?.ipcRenderer.invoke('get-settings')) as
+      | AppSettings
+      | undefined
     if (settings) {
       defaultDownloadPath.value = settings.defaultDownloadPath || ''
       theme.value = settings.theme || 'auto'
@@ -24,7 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  const saveSettings = () => {
+  const saveSettings = (): void => {
     window.electron?.ipcRenderer.send('update-settings', {
       defaultDownloadPath: defaultDownloadPath.value,
       theme: theme.value,
@@ -33,7 +35,7 @@ export const useSettingsStore = defineStore('settings', () => {
     })
   }
 
-  const resetSettings = () => {
+  const resetSettings = (): void => {
     defaultDownloadPath.value = ''
     theme.value = 'auto'
     concurrent.value = '4'

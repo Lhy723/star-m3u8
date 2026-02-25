@@ -28,21 +28,21 @@
     <div class="download-actions">
       <button
         v-if="item.status === 'downloading'"
-        @click="pause"
         class="action-btn pause"
         title="暂停"
+        @click="pause"
       >
         <PauseIcon class="action-icon" />
       </button>
       <button
         v-else-if="item.status === 'paused'"
-        @click="resume"
         class="action-btn resume"
         title="继续"
+        @click="resume"
       >
         <PlayIcon class="action-icon" />
       </button>
-      <button @click="cancel" class="action-btn cancel" title="取消">
+      <button class="action-btn cancel" title="取消" @click="cancel">
         <CancelIcon class="action-icon" />
       </button>
     </div>

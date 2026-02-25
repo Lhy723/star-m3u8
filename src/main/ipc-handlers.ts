@@ -4,10 +4,10 @@ import { getSettings, updateSettings, resetSettings } from './settings'
 
 const downloadManager = new DownloadManager()
 
-export function setupWindowEvents(win: BrowserWindow) {
+export function setupWindowEvents(win: BrowserWindow): void {
   downloadManager.setMainWindow(win)
 
-  const sendWindowState = () => {
+  const sendWindowState = (): void => {
     if (!win.isDestroyed()) {
       win.webContents.send('window-state-changed', {
         isMaximized: win.isMaximized(),
@@ -54,7 +54,7 @@ export function setupWindowEvents(win: BrowserWindow) {
   win.on('blur', sendWindowState)
 }
 
-export function registerIpcHandlers() {
+export function registerIpcHandlers(): void {
   // 目录选择
   ipcMain.handle('select-directory', () => selectDirectory())
 

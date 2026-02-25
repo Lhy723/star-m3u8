@@ -4,20 +4,20 @@
       <span class="title-bar-title">Star M3U8</span>
     </div>
     <div class="title-bar-controls">
-      <button class="control-btn minimize" @click="minimize" title="最小化">
+      <button class="control-btn minimize" title="最小化" @click="minimize">
         <MinimizeIcon class="control-icon" />
       </button>
       <button
         class="control-btn maximize"
-        @click="maximize"
         :title="windowStore.isMaximized ? '还原' : '最大化'"
+        @click="maximize"
       >
         <component
           :is="windowStore.isMaximized ? Maximize2Icon : MaximizeIcon"
           class="control-icon"
         />
       </button>
-      <button class="control-btn close" @click="close" title="关闭">
+      <button class="control-btn close" title="关闭" @click="close">
         <CloseIcon class="control-icon" />
       </button>
     </div>
