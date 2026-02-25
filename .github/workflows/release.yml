@@ -64,6 +64,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-tools rpm
 
+      # 移除 .npmrc 中的镜像配置，避免 CI 构建时使用不完整的镜像
+      - name: Remove npm mirror config for CI
+        run: |
+          if [ -f .npmrc ]; then
+            sed -i '/electron_mirror/d' .npmrc
+            sed -i '/electron_builder_binaries_mirror/d' .npmrc
+          fi
+        shell: bash
+
       # 安装依赖
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
