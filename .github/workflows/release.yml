@@ -18,7 +18,7 @@ jobs:
           - os: macos-latest
             platform: mac
             build_cmd: pnpm build:mac
-            artifact_pattern: 'dist/*.dmg'
+            artifact_pattern: 'dist/*-mac.zip'
           - os: ubuntu-latest
             platform: linux
             build_cmd: pnpm build:linux
@@ -90,7 +90,7 @@ jobs:
           name: ${{ matrix.platform }}-build
           path: |
             dist/*.exe
-            dist/*.dmg
+            dist/*-mac.zip
             dist/*.AppImage
             dist/*.deb
             dist/*.yml
@@ -143,7 +143,7 @@ jobs:
           prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
           files: |
             dist/*.exe
-            dist/*.dmg
+            dist/*-mac.zip
             dist/*.AppImage
             dist/*.deb
             dist/*.yml
