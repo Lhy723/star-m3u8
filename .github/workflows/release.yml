@@ -1,0 +1,159 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送 v 开头的 tag 时触发，如 v1.0.0
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false # 单个平台失败不影响其他平台
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+            build_cmd: pnpm build:win
+            artifact_pattern: 'dist/*.exe'
+          - os: macos-latest
+            platform: mac
+            build_cmd: pnpm build:mac
+            artifact_pattern: 'dist/*.dmg'
+          - os: ubuntu-latest
+            platform: linux
+            build_cmd: pnpm build:linux
+            artifact_pattern: 'dist/*.AppImage,dist/*.deb,dist/*.snap'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 安装 pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # 配置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      # macOS 签名相关配置（可选，需要配置 secrets）
+      - name: Setup macOS signing
+        if: matrix.platform == 'mac' && github.event_name != 'pull_request'
+        run: |
+          # 如果需要代码签名，取消下面的注释并配置 secrets
+          # security create-keychain -p ${{ secrets.MAC_KEYCHAIN_PASSWORD }} build.keychain
+          # security default-keychain -s build.keychain
+          # security unlock-keychain -p ${{ secrets.MAC_KEYCHAIN_PASSWORD }} build.keychain
+          # security import <(echo ${{ secrets.MAC_CERTIFICATE }} | base64 --decode) \
+          #   -k build.keychain -P ${{ secrets.MAC_CERTIFICATE_PASSWORD }} -T /usr/bin/codesign
+          # security set-key-partition-list -S apple-tool:,apple: -s -k ${{ secrets.MAC_KEYCHAIN_PASSWORD }} build.keychain
+          echo "macOS signing setup skipped"
+        shell: bash
+
+      # Linux 依赖
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libarchive-tools rpm snapcraft
+
+      # 安装依赖
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 构建应用
+      - name: Build application
+        run: ${{ matrix.build_cmd }}
+        env:
+          # macOS 公证配置（可选）
+          # APPLE_ID: ${{ secrets.APPLE_ID }}
+          # APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 上传构建产物
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-build
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/*.yml
+            dist/*.blockmap
+          if-no-files-found: warn
+          retention-days: 7
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 下载所有平台的构建产物
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: win-build
+          path: dist/
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-build
+          path: dist/
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-build
+          path: dist/
+
+      # 获取版本号
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      # 创建 Release
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
+          files: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.snap
+            dist/*.yml
+            dist/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 清理产物
+      - name: Clean up artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            win-build
+            mac-build
+            linux-build
+          failOnError: false

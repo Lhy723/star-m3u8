@@ -1,10 +1,28 @@
 {
   "name": "star-m3u8",
   "version": "1.0.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "description": "M3U8 视频下载器 - 基于 Electron + Vue 的桌面应用",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://electron-vite.org",
+  "author": {
+    "name": "Lhy723",
+    "email": "873904524@qq.com"
+  },
+  "homepage": "https://github.com/Lhy723/star-m3u8#readme",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lhy723/star-m3u8.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Lhy723/star-m3u8/issues"
+  },
+  "keywords": [
+    "m3u8",
+    "downloader",
+    "electron",
+    "vue",
+    "video"
+  ],
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint --cache .",
