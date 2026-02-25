@@ -25,6 +25,10 @@ jobs:
             artifact_pattern: 'dist/*.AppImage,dist/*.deb'
 
     runs-on: ${{ matrix.os }}
+    env:
+      # 使用官方源，避免国内镜像缺失文件
+      ELECTRON_MIRROR: https://github.com/electron/electron/releases/download/
+      ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
 
     steps:
       - name: Checkout repository
@@ -64,13 +68,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libarchive-tools rpm
 
-      # 移除 .npmrc 中的镜像配置，避免 CI 构建时使用不完整的镜像
+      # 移除 .npmrc 文件，避免 CI 构建时使用国内镜像
       - name: Remove npm mirror config for CI
-        run: |
-          if [ -f .npmrc ]; then
-            grep -v "electron_mirror" .npmrc > .npmrc.tmp && mv .npmrc.tmp .npmrc || true
-            grep -v "electron_builder_binaries_mirror" .npmrc > .npmrc.tmp && mv .npmrc.tmp .npmrc || true
-          fi
+        run: rm -f .npmrc
         shell: bash
 
       # 安装依赖
@@ -81,14 +81,7 @@ jobs:
       - name: Build application
         run: ${{ matrix.build_cmd }}
         env:
-          # macOS 公证配置（可选）
-          # APPLE_ID: ${{ secrets.APPLE_ID }}
-          # APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          # APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # 使用官方源，避免国内镜像缺失文件
-          ELECTRON_MIRROR: https://github.com/electron/electron/releases/download/
-          ELECTRON_BUILDER_BINARIES_MIRROR: https://github.com/electron-userland/electron-builder-binaries/releases/download/
 
       # 上传构建产物
       - name: Upload artifacts
