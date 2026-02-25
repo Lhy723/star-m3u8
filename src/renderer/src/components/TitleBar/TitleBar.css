@@ -2,36 +2,52 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 40px;
-  background-color: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-color);
+  height: 64px;
+  padding-right: 16px;
+  flex-shrink: 0;
+  position: relative;
 }
 
 .title-bar-drag {
   flex: 1;
   display: flex;
   align-items: center;
-  padding-left: 16px;
+  padding-left: 28px;
   -webkit-app-region: drag;
 }
 
 .title-bar-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 0.3px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
 }
 
 .title-bar-controls {
   display: flex;
-  height: 100%;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: 50px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--glass-border);
   -webkit-app-region: no-drag;
 }
 
+/* 深色模式 */
+[data-theme='dark'] .title-bar-controls {
+  background: rgba(30, 30, 30, 0.9);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
 .control-btn {
-  width: 46px;
-  height: 100%;
+  width: 32px;
+  height: 32px;
   border: none;
+  border-radius: 50%;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -42,16 +58,16 @@
 }
 
 .control-btn:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--glass-hover);
   color: var(--text-primary);
 }
 
 .control-btn.close:hover {
-  background-color: #e53935;
+  background-color: #ff5f57;
   color: white;
 }
 
 .control-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }

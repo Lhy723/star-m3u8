@@ -1,7 +1,7 @@
 <template>
   <div class="title-bar">
     <div class="title-bar-drag">
-      <span class="title-bar-title">Star M3U8</span>
+      <span class="title-bar-title">{{ pageTitle }}</span>
     </div>
     <div class="title-bar-controls">
       <button class="control-btn minimize" title="最小化" @click="minimize">
@@ -25,10 +25,23 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
 import { useWindowStore } from '@renderer/stores/window'
 import { MinimizeIcon, MaximizeIcon, Maximize2Icon, CloseIcon } from '@renderer/components/icons'
 
+const route = useRoute()
 const windowStore = useWindowStore()
+
+const pageTitle = computed(() => {
+  const titleMap: Record<string, string> = {
+    '/': '下载',
+    '/history': '历史',
+    '/settings': '设置',
+    '/about': '关于'
+  }
+  return titleMap[route.path] || 'Star M3U8'
+})
 
 function minimize(): void {
   windowStore.minimize()

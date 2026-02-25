@@ -1,32 +1,71 @@
 .base-aside {
-  width: 220px;
+  width: 240px;
   height: 100%;
-  background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 16px 12px;
+  padding: 20px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--backdrop-blur);
+  -webkit-backdrop-filter: var(--backdrop-blur);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  border: 1px solid var(--glass-border);
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* 玻璃光泽效果 - 浅色模式 */
+.base-aside::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--glass-highlight) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  pointer-events: none;
+  border-radius: var(--radius-lg);
+  z-index: 0;
+}
+
+/* 深色模式光泽效果 - 极微弱 */
+[data-theme='dark'] .base-aside::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.01) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
 
 .app-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 8px 12px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 2;
 }
 
 .logo-image {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
   object-fit: contain;
 }
 
 .logo-text {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 18px;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.3px;
 }
 
 .nav-menu {
@@ -34,13 +73,15 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  position: relative;
+  z-index: 2;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border-radius: var(--radius-md);
   color: var(--text-secondary);
   text-decoration: none;
@@ -48,16 +89,43 @@
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--glass-highlight) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-md);
+}
+
+.nav-item:hover::before {
+  opacity: 1;
 }
 
 .nav-item:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--glass-hover);
   color: var(--text-primary);
 }
 
 .nav-item.active {
   background-color: var(--color-primary-bg);
   color: var(--color-primary);
+}
+
+.nav-item.active::before {
+  opacity: 0;
 }
 
 .nav-item.active .nav-icon {
@@ -68,16 +136,22 @@
   width: 20px;
   height: 20px;
   flex-shrink: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-label {
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }
 
 .aside-footer {
   padding-top: 16px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid var(--glass-border);
   margin-top: auto;
+  position: relative;
+  z-index: 2;
 }
 
 .theme-toggle {
@@ -85,7 +159,7 @@
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px 16px;
   border: none;
   border-radius: var(--radius-md);
   background: transparent;
@@ -94,18 +168,45 @@
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    var(--glass-highlight) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-md);
+}
+
+.theme-toggle:hover::before {
+  opacity: 1;
 }
 
 .theme-toggle:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--glass-hover);
   color: var(--text-primary);
 }
 
 .theme-icon {
   width: 20px;
   height: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .theme-label {
   white-space: nowrap;
+  position: relative;
+  z-index: 1;
 }

@@ -1,15 +1,32 @@
 <template>
   <div class="app">
-    <TitleBar />
-    <div class="app-content">
-      <BaseAside />
-      <main class="app-main">
-        <router-view v-slot="{ Component }">
-          <transition name="page-fade" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
-      </main>
+    <div class="app-layout">
+      <!-- 左侧导航栏区域 -->
+      <div class="aside-wrapper">
+        <!-- 装饰色块 - 凸显磨砂玻璃质感 -->
+        <div class="decorative-blobs">
+          <div class="blob blob-1"></div>
+          <div class="blob blob-2"></div>
+          <div class="blob blob-3"></div>
+        </div>
+        <!-- 左侧悬浮导航栏 -->
+        <BaseAside />
+      </div>
+      
+      <!-- 右侧内容区域 -->
+      <div class="app-right">
+        <!-- 顶部标题栏 -->
+        <TitleBar />
+        
+        <!-- 主内容区 -->
+        <main class="app-main">
+          <router-view v-slot="{ Component }">
+            <transition name="page-fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </main>
+      </div>
     </div>
   </div>
 </template>
@@ -37,22 +54,84 @@ onUnmounted(() => {
 
 <style>
 .app {
-  display: flex;
-  flex-direction: column;
   width: 100%;
+  height: 100%;
+  background: #ffffff;
+}
+
+.app-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  gap: 8px;
+}
+
+.aside-wrapper {
+  position: relative;
+  width: 240px;
   height: 100%;
 }
 
-.app-content {
-  display: flex;
+/* 装饰色块 */
+.decorative-blobs {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  z-index: 0;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.6;
+}
+
+.blob-1 {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  top: 10%;
+  left: -20px;
+}
+
+.blob-2 {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #f97316, #fb923c);
+  bottom: 30%;
+  right: -10px;
+}
+
+.blob-3 {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+  bottom: 10%;
+  left: 20px;
+}
+
+/* 深色模式色块 */
+[data-theme='dark'] .blob {
+  opacity: 0.3;
+}
+
+.app-right {
   flex: 1;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
 .app-main {
   flex: 1;
   overflow-y: auto;
-  padding: 32px;
+  padding: 24px 32px;
 }
 
 .page-fade-enter-active,
@@ -86,5 +165,10 @@ onUnmounted(() => {
     filter: none;
     transform: none;
   }
+}
+
+/* 深色模式 */
+[data-theme='dark'] .app {
+  background: #000000;
 }
 </style>
