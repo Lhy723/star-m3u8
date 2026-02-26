@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow } from 'electron'
+import { ipcMain, BrowserWindow, shell } from 'electron'
 import { selectDirectory, DownloadManager } from './downloader'
 import { getSettings, updateSettings, resetSettings } from './settings'
 
@@ -84,5 +84,14 @@ export function registerIpcHandlers(): void {
 
   ipcMain.on('reset-settings', () => {
     resetSettings()
+  })
+
+  // 文件/文件夹操作 - 使用系统默认程序打开
+  ipcMain.handle('open-file', async (_event, filePath: string) => {
+    await shell.openPath(filePath)
+  })
+
+  ipcMain.handle('open-folder', async (_event, folderPath: string) => {
+    await shell.openPath(folderPath)
   })
 }

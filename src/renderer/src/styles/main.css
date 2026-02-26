@@ -12,7 +12,7 @@ html {
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--bg-primary);
+  background-color: rgba(0,0,0,0);
   color: var(--text-primary);
   overflow: hidden;
   line-height: 1.5;

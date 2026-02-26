@@ -1,24 +1,16 @@
 <template>
   <div class="app">
     <div class="app-layout">
-      <!-- 左侧导航栏区域 -->
       <div class="aside-wrapper">
-        <!-- 装饰色块 - 凸显磨砂玻璃质感 -->
         <div class="decorative-blobs">
           <div class="blob blob-1"></div>
           <div class="blob blob-2"></div>
           <div class="blob blob-3"></div>
         </div>
-        <!-- 左侧悬浮导航栏 -->
         <BaseAside />
       </div>
-      
-      <!-- 右侧内容区域 -->
       <div class="app-right">
-        <!-- 顶部标题栏 -->
         <TitleBar />
-        
-        <!-- 主内容区 -->
         <main class="app-main">
           <router-view v-slot="{ Component }">
             <transition name="page-fade" mode="out-in">
@@ -58,6 +50,7 @@ onUnmounted(() => {
   height: 100%;
   background: #ffffff;
 }
+
 
 .app-layout {
   display: flex;
