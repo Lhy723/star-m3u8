@@ -193,3 +193,77 @@
   flex-direction: column;
   gap: 12px;
 }
+
+/* 下载项进入动画 */
+.download-list-enter-active {
+  animation: slide-in 0.3s ease-out;
+}
+
+/* 下载项离开动画：高度收缩 + 淡出 */
+.download-list-leave-active {
+  transition: all 0.25s ease-in;
+  max-height: 100px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.download-list-leave-to {
+  opacity: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  transform: translateX(-20px);
+}
+
+/* 移动动画：其他元素平滑填补空位 */
+.download-list-move {
+  transition: transform 0.3s ease;
+}
+
+/* 进入动画：从上方滑入 + 淡入 */
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 空状态过渡 */
+.empty-state {
+  transition: all 0.3s ease;
+}
+
+.download-list-enter-active.empty-state {
+  animation: fade-in 0.3s ease-out;
+}
+
+.download-list-leave-active.empty-state {
+  transition: all 0.25s ease-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 尊重用户的减少动画偏好设置 */
+@media (prefers-reduced-motion: reduce) {
+  .download-list-enter-active,
+  .download-list-leave-active {
+    animation: none;
+    transition: none;
+  }
+
+  .download-list-move {
+    transition: none;
+  }
+}

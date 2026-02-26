@@ -58,14 +58,19 @@
           {{ downloadStore.queue.length }}
         </span>
       </h2>
-      <div v-if="downloadStore.queue.length === 0" class="empty-state">
-        <FileIcon class="empty-icon" />
-        <p>暂无下载任务</p>
-        <span>添加 M3U8 链接开始下载</span>
-      </div>
-      <div v-else class="download-list">
-        <DownloadCard v-for="item in downloadStore.queue" :key="item.id" :item="item" />
-      </div>
+      <TransitionGroup name="download-list" tag="div" class="download-list">
+        <div v-if="downloadStore.queue.length === 0" key="empty" class="empty-state">
+          <FileIcon class="empty-icon" />
+          <p>暂无下载任务</p>
+          <span>添加 M3U8 链接开始下载</span>
+        </div>
+        <DownloadCard
+          v-for="item in downloadStore.queue"
+          :key="item.id"
+          :item="item"
+          class="download-item"
+        />
+      </TransitionGroup>
     </div>
   </div>
 </template>

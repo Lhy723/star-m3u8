@@ -15,7 +15,8 @@
 }
 
 .download-card.is-downloading {
-  border-left: 3px solid var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 .download-icon {
