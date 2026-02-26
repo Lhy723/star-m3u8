@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import axios from 'axios'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegPath from '@ffmpeg-installer/ffmpeg'
+import { getSettings } from './settings'
 
 ffmpeg.setFfmpegPath(ffmpegPath.path)
 
@@ -295,7 +296,10 @@ export class DownloadManager {
         totalSegments: task.totalSegments
       })
 
-      const concurrency = DEFAULT_OPTIONS.concurrency
+      // 从用户设置中读取并发数和重试次数
+      const settings = getSettings()
+      const concurrency = parseInt(settings.concurrent, 10) || DEFAULT_OPTIONS.concurrency
+      const maxRetries = parseInt(settings.retry, 10) || DEFAULT_OPTIONS.maxRetries
       let downloadedCount = 0
       let totalBytes = 0
       const startTime = Date.now()
@@ -314,7 +318,7 @@ export class DownloadManager {
         }
 
         const segmentPath = path.join(tempDir, `${String(index).padStart(6, '0')}.ts`)
-        const success = await downloadSegment(segmentUrl, segmentPath, tempDir)
+        const success = await downloadSegment(segmentUrl, segmentPath, tempDir, undefined, maxRetries)
 
         if (this.cancelFlags.get(task.id)) {
           return false

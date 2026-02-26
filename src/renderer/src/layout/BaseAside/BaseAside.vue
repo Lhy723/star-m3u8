@@ -30,6 +30,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
+import { useSettingsStore } from '@renderer/stores/settings'
 import {
   DownloadIcon,
   HistoryIcon,
@@ -40,6 +41,7 @@ import {
 } from '@renderer/components/icons'
 
 const route = useRoute()
+const settingsStore = useSettingsStore()
 const isDark = ref(false)
 const navItemRefs = ref<Record<number, HTMLElement | null>>({})
 
@@ -75,10 +77,17 @@ function updateIndicator(): void {
   }
 }
 
+function applyTheme(dark: boolean): void {
+  isDark.value = dark
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+}
+
 function toggleTheme(): void {
-  isDark.value = !isDark.value
-  document.documentElement.setAttribute('data-theme', isDark.value ? 'dark' : 'light')
-  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+  const newDark = !isDark.value
+  applyTheme(newDark)
+  // 同步更新 settingsStore
+  settingsStore.theme = newDark ? 'dark' : 'light'
+  settingsStore.saveSettings()
 }
 
 watch(
@@ -89,13 +98,31 @@ watch(
   }
 )
 
-onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
+// 监听设置页面主题变化，同步更新界面
+watch(
+  () => settingsStore.theme,
+  (theme) => {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (theme === 'dark' || (theme === 'auto' && prefersDark)) {
+      applyTheme(true)
+    } else {
+      applyTheme(false)
+    }
+  }
+)
+
+onMounted(async () => {
+  // 先加载设置
+  await settingsStore.loadSettings()
+
+  // 根据设置中的主题值应用主题
+  const theme = settingsStore.theme
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    isDark.value = true
-    document.documentElement.setAttribute('data-theme', 'dark')
+  if (theme === 'dark' || (theme === 'auto' && prefersDark)) {
+    applyTheme(true)
+  } else {
+    applyTheme(false)
   }
 
   setTimeout(() => {
