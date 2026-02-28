@@ -19,27 +19,7 @@
 
 ---
 
-## 📸 应用截图
-
-### 主界面 - 亮色主题
-> 📷 截图文件位置：`docs/screenshots/main-light.png`
->
-> 建议内容：展示下载任务列表、进度条、操作按钮等核心功能界面
-
-### 主界面 - 暗色主题
-> 📷 截图文件位置：`docs/screenshots/main-dark.png`
->
-> 建议内容：展示暗色主题下的主界面效果
-
-### 设置页面
-> 📷 截图文件位置：`docs/screenshots/settings.png`
->
-> 建议内容：展示下载路径、并发数、主题切换等设置选项
-
-### 下载历史
-> 📷 截图文件位置：`docs/screenshots/history.png`
->
-> 建议内容：展示已完成的下载历史记录列表
+<img src="docs/screenshots/main-light.png" alt="主界面" width="100%">
 
 ---
 
@@ -120,6 +100,22 @@ pnpm build:linux  # Linux
     </td>
   </tr>
 </table>
+
+---
+
+## 📸 更多截图
+
+### 主界面 - 暗色主题
+
+<img src="docs/screenshots/main-dark.png" alt="主界面暗色主题" width="100%">
+
+### 设置页面
+
+<img src="docs/screenshots/settings.png" alt="设置页面" width="100%">
+
+### 下载历史
+
+<img src="docs/screenshots/history.png" alt="下载历史" width="100%">
 
 ---
 
