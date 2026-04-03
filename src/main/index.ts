@@ -1,12 +1,9 @@
 import { app, shell, BrowserWindow, nativeImage, dialog } from 'electron'
 import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import { registerIpcHandlers, setupWindowEvents } from './ipc-handlers'
 
 function formatFatalError(error: unknown): string {
   if (error instanceof Error) {
-    return `${error.name}: ${error.message}`
+    return `${error.name}: ${error.message}\n${error.stack || ''}`
   }
 
   if (typeof error === 'string' && error.length > 0) {
@@ -31,6 +28,10 @@ process.on('unhandledRejection', (reason) => {
   const message = formatFatalError(reason)
   console.error('[Main] Unhandled rejection:', message, reason)
 })
+
+import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import icon from '../../resources/icon.png?asset'
+import { registerIpcHandlers, setupWindowEvents } from './ipc-handlers'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
