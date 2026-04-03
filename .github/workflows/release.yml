@@ -77,6 +77,39 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 手动下载 ffmpeg 二进制文件（绕过 pnpm 可选依赖问题）
+      - name: Download ffmpeg binaries
+        shell: bash
+        run: |
+          mkdir -p node_modules/@ffmpeg-installer
+          
+          # Windows x64
+          if [[ "${{ matrix.platform }}" == "win" ]]; then
+            echo "Downloading ffmpeg for Windows x64..."
+            mkdir -p node_modules/@ffmpeg-installer/win32-x64
+            curl -L "https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4.1/win32-x64" -o node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe
+            chmod +x node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe
+          fi
+          
+          # macOS arm64
+          if [[ "${{ matrix.platform }}" == "mac" ]]; then
+            echo "Downloading ffmpeg for macOS arm64..."
+            mkdir -p node_modules/@ffmpeg-installer/darwin-arm64
+            curl -L "https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4.1/darwin-arm64" -o node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg
+            chmod +x node_modules/@ffmpeg-installer/darwin-arm64/ffmpeg
+          fi
+          
+          # Linux x64
+          if [[ "${{ matrix.platform }}" == "linux" ]]; then
+            echo "Downloading ffmpeg for Linux x64..."
+            mkdir -p node_modules/@ffmpeg-installer/linux-x64
+            curl -L "https://github.com/eugeneware/ffmpeg-static/releases/download/b4.4.1/linux-x64" -o node_modules/@ffmpeg-installer/linux-x64/ffmpeg
+            chmod +x node_modules/@ffmpeg-installer/linux-x64/ffmpeg
+          fi
+          
+          echo "FFmpeg binaries downloaded successfully"
+          ls -la node_modules/@ffmpeg-installer/
+
       # 构建应用
       - name: Build application
         run: ${{ matrix.build_cmd }}
