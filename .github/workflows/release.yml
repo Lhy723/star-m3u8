@@ -77,6 +77,24 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # 确保 ffmpeg 二进制文件存在（Windows 构建）
+      - name: Verify ffmpeg binary exists before build
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          $ffmpegPath = "node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
+          if (-not (Test-Path $ffmpegPath)) {
+            Write-Host "FFmpeg binary not found, attempting to download..."
+            # 尝试重新安装 ffmpeg-installer
+            pnpm rebuild @ffmpeg-installer/ffmpeg
+            if (-not (Test-Path $ffmpegPath)) {
+              Write-Error "Failed to download ffmpeg binary"
+              exit 1
+            }
+          }
+          Write-Host "FFmpeg binary found: $ffmpegPath"
+          Get-Item $ffmpegPath | Select-Object FullName, Length
+
       # 构建应用
       - name: Build application
         run: ${{ matrix.build_cmd }}
@@ -87,7 +105,7 @@ jobs:
         if: matrix.platform == 'win'
         shell: pwsh
         run: |
-          $ffmpegPath = "dist/win-unpacked/resources/app.asar.unpacked/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
+          $ffmpegPath = "dist/win-unpacked/resources/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
           if (-not (Test-Path $ffmpegPath)) {
             Write-Error "Missing ffmpeg binary in packaged app: $ffmpegPath"
             exit 1

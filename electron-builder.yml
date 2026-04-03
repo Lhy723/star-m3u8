@@ -11,7 +11,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
-  - node_modules/@ffmpeg-installer/**
+extraResources:
+  - from: node_modules/@ffmpeg-installer
+    to: node_modules/@ffmpeg-installer
+    filter:
+      - "**/*"
 win:
   executableName: star-m3u8
 nsis:
