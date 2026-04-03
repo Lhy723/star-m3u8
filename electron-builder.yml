@@ -9,13 +9,12 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - 'node_modules/@ffmpeg-installer/**/*'
+  - 'node_modules/.pnpm/@ffmpeg-installer*/**/*'
 asarUnpack:
   - resources/**
-extraResources:
-  - from: node_modules/@ffmpeg-installer
-    to: node_modules/@ffmpeg-installer
-    filter:
-      - "**/*"
+  - 'node_modules/@ffmpeg-installer/**/*'
+  - 'node_modules/.pnpm/@ffmpeg-installer*/**/*'
 win:
   executableName: star-m3u8
 nsis:

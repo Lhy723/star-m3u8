@@ -73,7 +73,20 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
-      "esbuild"
-    ]
+      "esbuild",
+      "@ffmpeg-installer/ffmpeg"
+    ],
+    "supportedArchitectures": {
+      "os": [
+        "win32",
+        "darwin",
+        "linux"
+      ],
+      "cpu": [
+        "x64",
+        "arm64",
+        "ia32"
+      ]
+    }
   }
 }
