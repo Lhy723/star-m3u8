@@ -87,17 +87,11 @@ jobs:
         if: matrix.platform == 'win'
         shell: pwsh
         run: |
-          # 检查 asar unpacked 目录
-          $ffmpegPath = "dist/win-unpacked/resources/app.asar.unpacked/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
+          # extraResources 会将文件复制到 resources 目录
+          $ffmpegPath = "dist/win-unpacked/resources/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
           if (-not (Test-Path $ffmpegPath)) {
-            # 如果不存在，检查 .pnpm 目录
-            $ffmpegPath = "dist/win-unpacked/resources/app.asar.unpacked/node_modules/.pnpm/@ffmpeg-installer+ffmpeg@*/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
-            $found = Get-Item $ffmpegPath -ErrorAction SilentlyContinue | Select-Object -First 1
-            if (-not $found) {
-              Write-Error "Missing ffmpeg binary in packaged app"
-              exit 1
-            }
-            $ffmpegPath = $found.FullName
+            Write-Error "Missing ffmpeg binary in packaged app: $ffmpegPath"
+            exit 1
           }
           Write-Host "Verified ffmpeg binary exists: $ffmpegPath"
 
