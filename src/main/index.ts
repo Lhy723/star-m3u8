@@ -1,8 +1,36 @@
-import { app, shell, BrowserWindow, nativeImage } from 'electron'
+import { app, shell, BrowserWindow, nativeImage, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { registerIpcHandlers, setupWindowEvents } from './ipc-handlers'
+
+function formatFatalError(error: unknown): string {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`
+  }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error
+  }
+
+  try {
+    const serialized = JSON.stringify(error)
+    return serialized === undefined ? 'Unknown fatal error' : serialized
+  } catch {
+    return 'Unknown fatal error'
+  }
+}
+
+process.on('uncaughtException', (error) => {
+  const message = formatFatalError(error)
+  console.error('[Main] Uncaught exception:', message, error)
+  dialog.showErrorBox('Application Startup Error', message)
+})
+
+process.on('unhandledRejection', (reason) => {
+  const message = formatFatalError(reason)
+  console.error('[Main] Unhandled rejection:', message, reason)
+})
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({

@@ -6,7 +6,7 @@
     <div class="download-info">
       <div class="download-header">
         <span class="download-filename">{{ item.filename }}</span>
-        <span :class="['status-badge', item.status]">
+        <span :class="['status-badge', item.status]" :title="item.status === 'error' ? item.errorMessage : ''">
           <component :is="statusBadgeIcon" class="badge-icon" />
           {{ statusText }}
         </span>
@@ -24,12 +24,15 @@
           <span class="progress-speed">{{ item.speed }}</span>
         </span>
       </div>
+      <p v-if="item.status === 'error' && item.errorMessage" class="error-message">
+        {{ item.errorMessage }}
+      </p>
     </div>
     <div class="download-actions">
       <button
         v-if="item.status === 'downloading'"
         class="action-btn pause"
-        title="暂停"
+        title="Pause"
         @click="pause"
       >
         <PauseIcon class="action-icon" />
@@ -37,12 +40,12 @@
       <button
         v-else-if="item.status === 'paused'"
         class="action-btn resume"
-        title="继续"
+        title="Resume"
         @click="resume"
       >
         <PlayIcon class="action-icon" />
       </button>
-      <button class="action-btn cancel" title="取消" @click="cancel">
+      <button class="action-btn cancel" title="Cancel" @click="cancel">
         <CancelIcon class="action-icon" />
       </button>
     </div>
@@ -72,11 +75,12 @@ const downloadStore = useDownloadStore()
 
 const statusText = computed(() => {
   const map: Record<string, string> = {
-    pending: '等待中',
-    downloading: '下载中',
-    paused: '已暂停',
-    completed: '已完成',
-    error: '出错'
+    pending: 'Pending',
+    downloading: 'Downloading',
+    paused: 'Paused',
+    merging: 'Merging',
+    completed: 'Completed',
+    error: 'Error'
   }
   return map[props.item.status] || props.item.status
 })
@@ -86,6 +90,7 @@ const statusIcon = computed(() => {
     pending: FileIcon,
     downloading: ZapIcon,
     paused: FileIcon,
+    merging: ZapIcon,
     completed: CheckCircleIcon,
     error: AlertTriangleIcon
   }
@@ -93,7 +98,7 @@ const statusIcon = computed(() => {
 })
 
 const statusBadgeIcon = computed(() => {
-  if (props.item.status === 'downloading') return ZapIcon
+  if (props.item.status === 'downloading' || props.item.status === 'merging') return ZapIcon
   if (props.item.status === 'completed') return CheckCircleIcon
   if (props.item.status === 'error') return AlertTriangleIcon
   return null

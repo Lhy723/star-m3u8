@@ -83,6 +83,17 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Verify bundled ffmpeg binary (Windows only)
+        if: matrix.platform == 'win'
+        shell: pwsh
+        run: |
+          $ffmpegPath = "dist/win-unpacked/resources/app.asar.unpacked/node_modules/@ffmpeg-installer/win32-x64/ffmpeg.exe"
+          if (-not (Test-Path $ffmpegPath)) {
+            Write-Error "Missing ffmpeg binary in packaged app: $ffmpegPath"
+            exit 1
+          }
+          Write-Host "Verified ffmpeg binary exists: $ffmpegPath"
+
       # 上传构建产物
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

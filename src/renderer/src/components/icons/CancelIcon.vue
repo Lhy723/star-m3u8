@@ -11,6 +11,7 @@
     stroke-linejoin="round"
   >
     <circle cx="12" cy="12" r="10" />
-    <path d="m4.93 4.93 14.14 14.14" />
+    <path d="m9 9 6 6" />
+    <path d="m15 9-6 6" />
   </svg>
 </template>

@@ -3,10 +3,172 @@ import * as path from 'path'
 import * as fs from 'fs'
 import axios from 'axios'
 import ffmpeg from 'fluent-ffmpeg'
-import ffmpegPath from '@ffmpeg-installer/ffmpeg'
 import { getSettings } from './settings'
 
-ffmpeg.setFfmpegPath(ffmpegPath.path)
+const FFMPEG_BINARY_NAME = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+
+let ffmpegConfigured = false
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error
+  }
+
+  try {
+    const serialized = JSON.stringify(error)
+    return serialized === undefined ? fallback : serialized
+  } catch {
+    return fallback
+  }
+}
+
+function resolveFfmpegPath(): string {
+  let loadError: unknown
+  const platformDir = `${process.platform}-${process.arch}`
+  const candidateSet = new Set<string>()
+
+  const addCandidate = (candidate: string | undefined): void => {
+    if (!candidate) {
+      return
+    }
+    candidateSet.add(path.normalize(candidate))
+  }
+
+  const isInsidePackedAsar = (candidate: string): boolean => {
+    const normalized = path.normalize(candidate)
+    return /app\.asar([\\/]|$)/i.test(normalized) && !/app\.asar\.unpacked([\\/]|$)/i.test(normalized)
+  }
+
+  const isSpawnableBinary = (candidate: string): boolean => {
+    if (isInsidePackedAsar(candidate)) {
+      return false
+    }
+
+    if (!fs.existsSync(candidate)) {
+      return false
+    }
+
+    try {
+      return fs.statSync(candidate).isFile()
+    } catch {
+      return false
+    }
+  }
+
+  const toAsarUnpackedPath = (candidate: string): string | undefined => {
+    if (!candidate.includes('app.asar')) {
+      return undefined
+    }
+    return candidate.replace(/app\.asar([\\/])/g, 'app.asar.unpacked$1')
+  }
+
+  const findExisting = (candidates: Iterable<string>): string | undefined => {
+    for (const candidate of candidates) {
+      if (isSpawnableBinary(candidate)) {
+        return candidate
+      }
+    }
+    return undefined
+  }
+
+  try {
+    const installer = require('@ffmpeg-installer/ffmpeg') as { path?: string }
+    if (installer.path) {
+      if (!isInsidePackedAsar(installer.path)) {
+        addCandidate(installer.path)
+      }
+      addCandidate(toAsarUnpackedPath(installer.path))
+    }
+  } catch (error) {
+    loadError = error
+  }
+
+  const resourcesCandidates = [
+    process.resourcesPath,
+    path.join(path.dirname(process.execPath), 'resources')
+  ]
+
+  try {
+    const appPath = app.getAppPath()
+    addCandidate(
+      path.join(
+        appPath,
+        '..',
+        'app.asar.unpacked',
+        'node_modules',
+        '@ffmpeg-installer',
+        platformDir,
+        FFMPEG_BINARY_NAME
+      )
+    )
+  } catch {
+    // ignore appPath access failures before app is ready
+  }
+
+  for (const resourcesPath of resourcesCandidates) {
+    addCandidate(
+      path.join(
+        resourcesPath,
+        'app.asar.unpacked',
+        'node_modules',
+        '@ffmpeg-installer',
+        platformDir,
+        FFMPEG_BINARY_NAME
+      )
+    )
+    addCandidate(path.join(resourcesPath, 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME))
+  }
+
+  addCandidate(path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME))
+
+  const existingPath = findExisting(candidateSet)
+  if (existingPath) {
+    return existingPath
+  }
+
+  const checkedPaths = Array.from(candidateSet)
+    .map((candidate) => `"${candidate}"`)
+    .join(', ')
+
+  const fallbackCandidates = [
+    path.join(
+      process.resourcesPath,
+      'app.asar.unpacked',
+      'node_modules',
+      '@ffmpeg-installer',
+      platformDir,
+      FFMPEG_BINARY_NAME
+    ),
+    path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME)
+  ]
+
+  const fallbackPath = findExisting(fallbackCandidates)
+  if (fallbackPath) {
+    return fallbackPath
+  }
+
+  const reason =
+    loadError === undefined
+      ? 'ffmpeg binary is missing from packaged resources'
+      : getErrorMessage(loadError, 'unable to load @ffmpeg-installer/ffmpeg')
+
+  throw new Error(`Unable to initialize ffmpeg (${reason}). Checked: ${checkedPaths}`)
+}
+
+function ensureFfmpegConfigured(): void {
+  if (ffmpegConfigured) {
+    return
+  }
+
+  const ffmpegBinaryPath = resolveFfmpegPath()
+  ffmpeg.setFfmpegPath(ffmpegBinaryPath)
+  ffmpegConfigured = true
+  console.log('[DownloadManager] FFmpeg path:', ffmpegBinaryPath)
+}
 
 export interface DownloadTask {
   id: string
@@ -24,8 +186,19 @@ export interface DownloadTask {
 interface M3U8Info {
   isMaster: boolean
   segments: string[]
+  initSegment?: string
   targetDuration: number
   variantStreams?: { bandwidth: number; uri: string }[]
+}
+
+interface SegmentEntry {
+  url: string
+  fileName: string
+}
+
+interface MergeResult {
+  success: boolean
+  error?: string
 }
 
 interface DownloadOptions {
@@ -103,6 +276,11 @@ function parseM3U8(content: string, baseUrl: string): M3U8Info {
           uri: resolveUrl(baseUrl, nextLine)
         })
       }
+    } else if (line.startsWith('#EXT-X-MAP:')) {
+      const uriMatch = line.match(/URI="([^"]+)"/)
+      if (uriMatch?.[1]) {
+        result.initSegment = resolveUrl(baseUrl, uriMatch[1])
+      }
     } else if (line.startsWith('#EXTINF:')) {
       const nextLine = lines[i + 1]
       if (nextLine && !nextLine.startsWith('#')) {
@@ -117,6 +295,41 @@ function parseM3U8(content: string, baseUrl: string): M3U8Info {
   }
 
   return result
+}
+
+function getSegmentExtension(segmentUrl: string): string {
+  try {
+    const pathname = new URL(segmentUrl).pathname
+    const ext = path.extname(pathname).toLowerCase()
+    if (ext && ext.length <= 8) {
+      return ext
+    }
+  } catch {
+    // fall back to default extension
+  }
+  return '.ts'
+}
+
+function buildSegmentEntries(m3u8Info: M3U8Info): SegmentEntry[] {
+  const entries: SegmentEntry[] = []
+
+  if (m3u8Info.initSegment) {
+    entries.push({
+      url: m3u8Info.initSegment,
+      fileName: `000000_init${getSegmentExtension(m3u8Info.initSegment)}`
+    })
+  }
+
+  for (let i = 0; i < m3u8Info.segments.length; i++) {
+    const segmentUrl = m3u8Info.segments[i]
+    const sequence = i + (m3u8Info.initSegment ? 1 : 0)
+    entries.push({
+      url: segmentUrl,
+      fileName: `${String(sequence).padStart(6, '0')}${getSegmentExtension(segmentUrl)}`
+    })
+  }
+
+  return entries
 }
 
 async function downloadSegment(
@@ -164,24 +377,20 @@ async function mergeToMp4(
   segmentDir: string,
   outputPath: string,
   onProgress?: (progress: number) => void
-): Promise<boolean> {
+): Promise<MergeResult> {
   return new Promise((resolve) => {
     if (!fs.existsSync(segmentDir)) {
-      resolve(false)
+      resolve({ success: false, error: 'Segment directory does not exist.' })
       return
     }
 
     const segmentFiles = fs
       .readdirSync(segmentDir)
-      .filter((f) => f.endsWith('.ts'))
-      .sort((a, b) => {
-        const numA = parseInt(a.replace('.ts', ''), 10)
-        const numB = parseInt(b.replace('.ts', ''), 10)
-        return numA - numB
-      })
+      .filter((f) => /^\d{6}/.test(f))
+      .sort((a, b) => a.localeCompare(b))
 
     if (segmentFiles.length === 0) {
-      resolve(false)
+      resolve({ success: false, error: 'No local segment files found.' })
       return
     }
 
@@ -189,9 +398,75 @@ async function mergeToMp4(
     const concatContent = segmentFiles.map((f) => `file '${path.join(segmentDir, f)}'`).join('\n')
     fs.writeFileSync(concatListPath, concatContent)
 
+    const cleanup = (): void => {
+      if (fs.existsSync(concatListPath)) {
+        fs.unlinkSync(concatListPath)
+      }
+    }
+
+    const runMerge = (copyOnly: boolean): void => {
+      const command = ffmpeg()
+        .input(concatListPath)
+        .inputOptions(['-f concat', '-safe 0'])
+        .output(outputPath)
+        .on('progress', (progress) => {
+          if (onProgress && progress.percent) {
+            onProgress(Math.min(progress.percent, 100))
+          }
+        })
+        .on('end', () => {
+          cleanup()
+          resolve({ success: true })
+        })
+        .on('error', (err) => {
+          const errorMessage = getErrorMessage(err, 'ffmpeg merge failed')
+          console.error(
+            copyOnly ? 'FFmpeg merge copy mode error:' : 'FFmpeg merge re-encode mode error:',
+            err
+          )
+
+          if (copyOnly) {
+            console.warn('[DownloadManager] Falling back to ffmpeg re-encode merge mode')
+            if (fs.existsSync(outputPath)) {
+              fs.unlinkSync(outputPath)
+            }
+            runMerge(false)
+            return
+          }
+
+          cleanup()
+          resolve({
+            success: false,
+            error: `ffmpeg copy + re-encode merge failed (${errorMessage})`
+          })
+        })
+
+      if (copyOnly) {
+        command.outputOptions(['-c copy', '-movflags +faststart'])
+      } else {
+        command.outputOptions(['-c:v libx264', '-c:a aac', '-movflags +faststart'])
+      }
+
+      command.run()
+    }
+
+    runMerge(true)
+  })
+}
+
+async function mergeM3u8Directly(
+  m3u8Url: string,
+  outputPath: string,
+  onProgress?: (progress: number) => void
+): Promise<MergeResult> {
+  return new Promise((resolve) => {
+    if (fs.existsSync(outputPath)) {
+      fs.unlinkSync(outputPath)
+    }
+
     ffmpeg()
-      .input(concatListPath)
-      .inputOptions(['-f concat', '-safe 0'])
+      .input(m3u8Url)
+      .inputOptions(['-user_agent', DEFAULT_OPTIONS.headers['User-Agent']])
       .outputOptions(['-c copy', '-movflags +faststart'])
       .output(outputPath)
       .on('progress', (progress) => {
@@ -199,18 +474,102 @@ async function mergeToMp4(
           onProgress(Math.min(progress.percent, 100))
         }
       })
-      .on('end', () => {
-        if (fs.existsSync(concatListPath)) {
-          fs.unlinkSync(concatListPath)
-        }
-        resolve(true)
-      })
+      .on('end', () => resolve({ success: true }))
       .on('error', (err) => {
-        console.error('FFmpeg merge error:', err)
-        if (fs.existsSync(concatListPath)) {
-          fs.unlinkSync(concatListPath)
+        console.error('FFmpeg direct m3u8 merge error:', err)
+        resolve({
+          success: false,
+          error: `ffmpeg direct m3u8 merge failed (${getErrorMessage(err, 'unknown error')})`
+        })
+      })
+      .run()
+  })
+}
+
+function buildLocalPlaylistContent(
+  content: string,
+  baseUrl: string,
+  segmentEntries: SegmentEntry[]
+): string {
+  const segmentMap = new Map<string, string>()
+  for (const entry of segmentEntries) {
+    segmentMap.set(entry.url, entry.fileName)
+  }
+
+  const lines = content.split(/\r?\n/)
+  const mappedLines = lines.map((line) => {
+    const trimmed = line.trim()
+
+    if (!trimmed) {
+      return line
+    }
+
+    if (trimmed.startsWith('#EXT-X-MAP:')) {
+      const uriMatch = trimmed.match(/URI="([^"]+)"/)
+      if (!uriMatch?.[1]) {
+        return line
+      }
+
+      const absoluteUrl = resolveUrl(baseUrl, uriMatch[1])
+      const localFileName = segmentMap.get(absoluteUrl)
+      if (!localFileName) {
+        return line
+      }
+
+      return line.replace(/URI="([^"]+)"/, `URI="${localFileName}"`)
+    }
+
+    if (trimmed.startsWith('#')) {
+      return line
+    }
+
+    const absoluteUrl = resolveUrl(baseUrl, trimmed)
+    const localFileName = segmentMap.get(absoluteUrl)
+    return localFileName ?? line
+  })
+
+  return mappedLines.join('\n')
+}
+
+async function mergeFromLocalPlaylist(
+  playlistContent: string,
+  playlistBaseUrl: string,
+  segmentEntries: SegmentEntry[],
+  tempDir: string,
+  outputPath: string,
+  onProgress?: (progress: number) => void
+): Promise<MergeResult> {
+  return new Promise((resolve) => {
+    const localPlaylistPath = path.join(tempDir, 'local-playlist.m3u8')
+    const localPlaylistContent = buildLocalPlaylistContent(
+      playlistContent,
+      playlistBaseUrl,
+      segmentEntries
+    )
+
+    fs.writeFileSync(localPlaylistPath, localPlaylistContent)
+
+    if (fs.existsSync(outputPath)) {
+      fs.unlinkSync(outputPath)
+    }
+
+    ffmpeg()
+      .input(localPlaylistPath)
+      .inputOptions(['-protocol_whitelist', 'file,pipe,data,crypto,http,https,tcp,tls'])
+      .outputOptions(['-c copy', '-movflags +faststart'])
+      .output(outputPath)
+      .on('progress', (progress) => {
+        if (onProgress && progress.percent) {
+          onProgress(Math.min(progress.percent, 100))
         }
-        resolve(false)
+      })
+      .on('end', () => resolve({ success: true }))
+      .on('error', (err) => {
+        console.error('FFmpeg local playlist merge error:', err)
+        resolve({
+          success: false,
+          error: `ffmpeg local playlist merge failed (${getErrorMessage(err, 'unknown error')})`
+        })
       })
       .run()
   })
@@ -284,10 +643,13 @@ export class DownloadManager {
       }
 
       if (m3u8Info.segments.length === 0) {
-        throw new Error('未找到视频分片')
+        throw new Error('No video segments found in m3u8 playlist.')
       }
 
-      task.totalSegments = m3u8Info.segments.length
+      ensureFfmpegConfigured()
+
+      const segmentEntries = buildSegmentEntries(m3u8Info)
+      task.totalSegments = segmentEntries.length
       console.log('[DownloadManager] Total segments:', task.totalSegments)
 
       this.send('download-status', {
@@ -303,11 +665,10 @@ export class DownloadManager {
       let downloadedCount = 0
       let totalBytes = 0
       const startTime = Date.now()
-      const segments = m3u8Info.segments
+      const segments = segmentEntries
 
       const downloadWithPauseCheck = async (
-        segmentUrl: string,
-        index: number
+        segment: SegmentEntry
       ): Promise<boolean> => {
         while (this.pauseFlags.get(task.id) && !this.cancelFlags.get(task.id)) {
           await new Promise((resolve) => setTimeout(resolve, 500))
@@ -317,8 +678,8 @@ export class DownloadManager {
           return false
         }
 
-        const segmentPath = path.join(tempDir, `${String(index).padStart(6, '0')}.ts`)
-        const success = await downloadSegment(segmentUrl, segmentPath, tempDir, undefined, maxRetries)
+        const segmentPath = path.join(tempDir, segment.fileName)
+        const success = await downloadSegment(segment.url, segmentPath, tempDir, undefined, maxRetries)
 
         if (this.cancelFlags.get(task.id)) {
           return false
@@ -329,7 +690,7 @@ export class DownloadManager {
           totalBytes += stats.size
           downloadedCount++
           task.downloadedSegments = downloadedCount
-          task.progress = Math.round((downloadedCount / segments.length) * 100)
+          task.progress = Math.round((downloadedCount / segments.length) * 95)
 
           const elapsed = (Date.now() - startTime) / 1000
           task.speed = formatSpeed(totalBytes / elapsed)
@@ -353,8 +714,12 @@ export class DownloadManager {
         }
 
         const batch = segments.slice(i, Math.min(i + concurrency, segments.length))
-        const promises = batch.map((url, batchIndex) => downloadWithPauseCheck(url, i + batchIndex))
-        await Promise.all(promises)
+        const promises = batch.map((segment) => downloadWithPauseCheck(segment))
+        const batchResults = await Promise.all(promises)
+
+        if (batchResults.some((result) => !result)) {
+          throw new Error('Some segments failed to download, please retry the task.')
+        }
       }
 
       if (this.cancelFlags.get(task.id)) {
@@ -368,17 +733,67 @@ export class DownloadManager {
       const outputFileName = task.filename.endsWith('.mp4') ? task.filename : `${task.filename}.mp4`
       const outputPath = path.join(task.savePath, outputFileName)
 
-      const mergeSuccess = await mergeToMp4(tempDir, outputPath, (progress) => {
-        this.send('download-progress', {
-          id: task.id,
-          progress: Math.round(task.progress + ((100 - task.progress) * progress) / 100),
-          speed: '正在合并...'
-        })
-      })
+      const mergeAttempts: string[] = []
 
-      if (!mergeSuccess) {
-        throw new Error('视频合并失败')
+      let mergeResult = await mergeFromLocalPlaylist(
+        m3u8Content,
+        m3u8Url,
+        segmentEntries,
+        tempDir,
+        outputPath,
+        (progress) => {
+          this.send('download-progress', {
+            id: task.id,
+            progress: Math.round(task.progress + ((100 - task.progress) * progress) / 100),
+            speed: 'Merging...'
+          })
+        }
+      )
+
+      if (!mergeResult.success) {
+        mergeAttempts.push(mergeResult.error ?? 'local playlist merge failed')
       }
+
+      if (!mergeResult.success) {
+        mergeResult = await mergeToMp4(tempDir, outputPath, (progress) => {
+          this.send('download-progress', {
+            id: task.id,
+            progress: Math.round(task.progress + ((100 - task.progress) * progress) / 100),
+            speed: 'Merging...'
+          })
+        })
+      }
+
+      if (!mergeResult.success) {
+        mergeAttempts.push(mergeResult.error ?? 'local segment merge failed')
+      }
+
+      if (!mergeResult.success) {
+        console.warn('[DownloadManager] Local segment merge failed, trying direct m3u8 merge fallback')
+        mergeResult = await mergeM3u8Directly(m3u8Url, outputPath, (progress) => {
+          this.send('download-progress', {
+            id: task.id,
+            progress: Math.round(task.progress + ((100 - task.progress) * progress) / 100),
+            speed: 'Merging...'
+          })
+        })
+      }
+
+      if (!mergeResult.success) {
+        mergeAttempts.push(mergeResult.error ?? 'direct m3u8 merge failed')
+      }
+
+      if (!mergeResult.success) {
+        throw new Error(
+          `Failed to merge video. Attempts: ${mergeAttempts.join(' | ')}`
+        )
+      }
+
+      this.send('download-progress', {
+        id: task.id,
+        progress: 100,
+        speed: 'Done'
+      })
 
       console.log('[DownloadManager] Merge completed, cleaning up...')
       if (fs.existsSync(tempDir)) {
@@ -390,7 +805,7 @@ export class DownloadManager {
       this.send('download-status', { id: task.id, status: 'completed' })
       this.cleanup(task.id)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '下载失败'
+      const errorMessage = getErrorMessage(error, 'Download failed.')
       console.error('[DownloadManager] Download error:', errorMessage)
       task.status = 'error'
       task.errorMessage = errorMessage

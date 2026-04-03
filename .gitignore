@@ -5,3 +5,13 @@ out
 .DS_Store
 .eslintcache
 *.log*
+
+# skills-related folders (local agent tooling)
+.agents/
+.claude/
+.codebuddy/
+.iflow/
+.kiro/
+.kode/
+.trae/
+skills/

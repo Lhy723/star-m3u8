@@ -169,6 +169,14 @@
   color: var(--text-muted);
 }
 
+.error-message {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--color-error);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
 .download-actions {
   display: flex;
   gap: 6px;
