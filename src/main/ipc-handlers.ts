@@ -1,11 +1,77 @@
 import { ipcMain, BrowserWindow, shell } from 'electron'
-import { selectDirectory, DownloadManager } from './downloader'
 import { getSettings, updateSettings, resetSettings } from './settings'
 
-const downloadManager = new DownloadManager()
+type DownloaderModule = typeof import('./downloader')
+type DownloadManagerInstance = InstanceType<DownloaderModule['DownloadManager']>
+
+let mainWindowRef: BrowserWindow | null = null
+let downloadManager: DownloadManagerInstance | null = null
+let downloaderModulePromise: Promise<DownloaderModule> | null = null
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error
+  }
+
+  try {
+    const serialized = JSON.stringify(error)
+    return serialized === undefined ? fallback : serialized
+  } catch {
+    return fallback
+  }
+}
+
+async function loadDownloaderModule(): Promise<DownloaderModule> {
+  if (!downloaderModulePromise) {
+    downloaderModulePromise = import('./downloader')
+  }
+
+  try {
+    return await downloaderModulePromise
+  } catch (error) {
+    downloaderModulePromise = null
+    throw error
+  }
+}
+
+async function getDownloadManager(): Promise<DownloadManagerInstance> {
+  if (!downloadManager) {
+    const downloaderModule = await loadDownloaderModule()
+    downloadManager = new downloaderModule.DownloadManager()
+  }
+
+  if (mainWindowRef && !mainWindowRef.isDestroyed()) {
+    downloadManager.setMainWindow(mainWindowRef)
+  }
+
+  return downloadManager
+}
+
+function reportDownloadInitError(id: string | undefined, error: unknown): void {
+  const errorMessage = getErrorMessage(error, 'Failed to initialize downloader module.')
+  console.error('[IPC] Failed to initialize downloader module:', error)
+
+  if (!mainWindowRef || mainWindowRef.isDestroyed()) {
+    return
+  }
+
+  mainWindowRef.webContents.send('download-status', {
+    id,
+    status: 'error',
+    errorMessage
+  })
+}
 
 export function setupWindowEvents(win: BrowserWindow): void {
-  downloadManager.setMainWindow(win)
+  mainWindowRef = win
+
+  void getDownloadManager().catch((error) => {
+    console.error('[IPC] Downloader warm-up skipped:', error)
+  })
 
   const sendWindowState = (): void => {
     if (!win.isDestroyed()) {
@@ -27,7 +93,7 @@ export function setupWindowEvents(win: BrowserWindow): void {
     }
   })
 
-  // 使用 destroy() 代替 close()，避免 Electron 39.x 无框窗口在 Windows 上的崩溃问题
+  // Use destroy() instead of close() to avoid frameless-window crashes on newer Electron.
   ipcMain.on('window-close', () => {
     if (!win.isDestroyed()) {
       if (win.webContents.isDevToolsOpened()) {
@@ -55,27 +121,47 @@ export function setupWindowEvents(win: BrowserWindow): void {
 }
 
 export function registerIpcHandlers(): void {
-  // 目录选择
-  ipcMain.handle('select-directory', () => selectDirectory())
-
-  // 下载相关
-  ipcMain.on('start-download', (_event, item) => {
-    downloadManager.startDownload(item)
+  ipcMain.handle('select-directory', async () => {
+    const downloaderModule = await loadDownloaderModule()
+    return downloaderModule.selectDirectory()
   })
 
-  ipcMain.on('pause-download', (_event, id) => {
-    downloadManager.pauseDownload(id)
+  ipcMain.on('start-download', async (_event, item) => {
+    try {
+      const manager = await getDownloadManager()
+      void manager.startDownload(item)
+    } catch (error) {
+      reportDownloadInitError(item?.id, error)
+    }
   })
 
-  ipcMain.on('resume-download', (_event, id) => {
-    downloadManager.resumeDownload(id)
+  ipcMain.on('pause-download', async (_event, id) => {
+    try {
+      const manager = await getDownloadManager()
+      manager.pauseDownload(id)
+    } catch (error) {
+      reportDownloadInitError(id, error)
+    }
   })
 
-  ipcMain.on('cancel-download', (_event, id) => {
-    downloadManager.cancelDownload(id)
+  ipcMain.on('resume-download', async (_event, id) => {
+    try {
+      const manager = await getDownloadManager()
+      manager.resumeDownload(id)
+    } catch (error) {
+      reportDownloadInitError(id, error)
+    }
   })
 
-  // 设置相关
+  ipcMain.on('cancel-download', async (_event, id) => {
+    try {
+      const manager = await getDownloadManager()
+      manager.cancelDownload(id)
+    } catch (error) {
+      reportDownloadInitError(id, error)
+    }
+  })
+
   ipcMain.handle('get-settings', () => getSettings())
 
   ipcMain.on('update-settings', (_event, settings) => {
@@ -86,7 +172,6 @@ export function registerIpcHandlers(): void {
     resetSettings()
   })
 
-  // 文件/文件夹操作 - 使用系统默认程序打开
   ipcMain.handle('open-file', async (_event, filePath: string) => {
     await shell.openPath(filePath)
   })

@@ -1,5 +1,6 @@
 import { app, shell, BrowserWindow, nativeImage, dialog } from 'electron'
 import { join } from 'path'
+import * as fs from 'fs'
 
 function formatFatalError(error: unknown): string {
   if (error instanceof Error) {
@@ -31,9 +32,50 @@ process.on('unhandledRejection', (reason) => {
 
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import { registerIpcHandlers, setupWindowEvents } from './ipc-handlers'
 
-function createWindow(): void {
+type IpcModule = typeof import('./ipc-handlers')
+
+function isWritableDirectory(dirPath: string): boolean {
+  try {
+    fs.mkdirSync(dirPath, { recursive: true })
+    const marker = join(dirPath, `.write-test-${process.pid}-${Date.now()}`)
+    fs.writeFileSync(marker, 'ok')
+    fs.unlinkSync(marker)
+    return true
+  } catch {
+    return false
+  }
+}
+
+function configureUserDataPath(): void {
+  const defaultUserDataPath = app.getPath('userData')
+  if (isWritableDirectory(defaultUserDataPath)) {
+    return
+  }
+
+  const fallbackCandidates = [
+    join(app.getPath('appData'), `${app.getName()}-data`),
+    join(app.getPath('temp'), `${app.getName()}-data`, 'user-data')
+  ]
+
+  for (const candidate of fallbackCandidates) {
+    if (!isWritableDirectory(candidate)) {
+      continue
+    }
+
+    app.setPath('userData', candidate)
+    console.warn(
+      `[Main] userData path is not writable, fallback path enabled. from="${defaultUserDataPath}" to="${candidate}"`
+    )
+    return
+  }
+
+  throw new Error(
+    `Cannot access userData directory. default="${defaultUserDataPath}" fallback="${fallbackCandidates.join(', ')}"`
+  )
+}
+
+function createWindow(setupWindowEvents?: IpcModule['setupWindowEvents']): void {
   const mainWindow = new BrowserWindow({
     minHeight: 600,
     minWidth: 1000,
@@ -64,23 +106,38 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  setupWindowEvents(mainWindow)
+  if (setupWindowEvents) {
+    setupWindowEvents(mainWindow)
+  }
 }
 
-app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.electron')
+try {
+  configureUserDataPath()
+} catch (error) {
+  console.error('[Main] Failed to configure userData path:', error)
+}
 
-  registerIpcHandlers()
+app.whenReady().then(async () => {
+  try {
+    electronApp.setAppUserModelId('com.electron')
 
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+    const ipcModule = await import('./ipc-handlers')
+    ipcModule.registerIpcHandlers()
 
-  createWindow()
+    app.on('browser-window-created', (_, window) => {
+      optimizer.watchWindowShortcuts(window)
+    })
 
-  app.on('activate', function () {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+    createWindow(ipcModule.setupWindowEvents)
+
+    app.on('activate', function () {
+      if (BrowserWindow.getAllWindows().length === 0) createWindow(ipcModule.setupWindowEvents)
+    })
+  } catch (error) {
+    const message = formatFatalError(error)
+    console.error('[Main] Failed to initialize application:', error)
+    dialog.showErrorBox('Application Startup Error', message)
+  }
 })
 
 app.on('window-all-closed', () => {

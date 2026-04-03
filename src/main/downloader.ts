@@ -3,7 +3,6 @@ import * as path from 'path'
 import * as fs from 'fs'
 import axios from 'axios'
 import ffmpeg from 'fluent-ffmpeg'
-import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { getSettings } from './settings'
 
 const FFMPEG_BINARY_NAME = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
@@ -61,13 +60,6 @@ function resolveFfmpegPath(): string {
     }
   }
 
-  const toAsarUnpackedPath = (candidate: string): string | undefined => {
-    if (!candidate.includes('app.asar')) {
-      return undefined
-    }
-    return candidate.replace(/app\.asar([\\/])/g, 'app.asar.unpacked$1')
-  }
-
   const findExisting = (candidates: Iterable<string>): string | undefined => {
     for (const candidate of candidates) {
       if (isSpawnableBinary(candidate)) {
@@ -75,13 +67,6 @@ function resolveFfmpegPath(): string {
       }
     }
     return undefined
-  }
-
-  if (ffmpegInstaller.path) {
-    if (!isInsidePackedAsar(ffmpegInstaller.path)) {
-      addCandidate(ffmpegInstaller.path)
-    }
-    addCandidate(toAsarUnpackedPath(ffmpegInstaller.path))
   }
 
   const resourcesCandidates = [

@@ -10,7 +10,7 @@
           <img src="@renderer/assets/logo.png" alt="Logo" class="logo-image" />
         </div>
         <p class="about-name">Star M3U8</p>
-        <p class="about-version">版本 1.0.0</p>
+        <p class="about-version">版本 1.0.2</p>
         <p class="about-desc">一个美观、易用的跨平台 M3U8 视频下载器</p>
         <div class="about-links">
           <button class="about-link" @click="openAuthorPage">
