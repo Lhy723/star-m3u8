@@ -12,8 +12,20 @@ files:
 asarUnpack:
   - resources/**
 extraResources:
-  - from: node_modules/@ffmpeg-installer
-    to: node_modules/@ffmpeg-installer
+  - from: node_modules/@ffmpeg-installer/win32-x64
+    to: node_modules/@ffmpeg-installer/win32-x64
+    filter:
+      - "**/*"
+  - from: node_modules/@ffmpeg-installer/darwin-x64
+    to: node_modules/@ffmpeg-installer/darwin-x64
+    filter:
+      - "**/*"
+  - from: node_modules/@ffmpeg-installer/darwin-arm64
+    to: node_modules/@ffmpeg-installer/darwin-arm64
+    filter:
+      - "**/*"
+  - from: node_modules/@ffmpeg-installer/linux-x64
+    to: node_modules/@ffmpeg-installer/linux-x64
     filter:
       - "**/*"
 win:
