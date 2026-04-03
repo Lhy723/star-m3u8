@@ -51,7 +51,6 @@ onUnmounted(() => {
   background: #ffffff;
 }
 
-
 .app-layout {
   display: flex;
   width: 100%;

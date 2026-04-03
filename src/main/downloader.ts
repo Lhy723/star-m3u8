@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import axios from 'axios'
 import ffmpeg from 'fluent-ffmpeg'
+import ffmpegInstaller from '@ffmpeg-installer/ffmpeg'
 import { getSettings } from './settings'
 
 const FFMPEG_BINARY_NAME = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
@@ -27,7 +28,6 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 function resolveFfmpegPath(): string {
-  let loadError: unknown
   const platformDir = `${process.platform}-${process.arch}`
   const candidateSet = new Set<string>()
 
@@ -40,7 +40,9 @@ function resolveFfmpegPath(): string {
 
   const isInsidePackedAsar = (candidate: string): boolean => {
     const normalized = path.normalize(candidate)
-    return /app\.asar([\\/]|$)/i.test(normalized) && !/app\.asar\.unpacked([\\/]|$)/i.test(normalized)
+    return (
+      /app\.asar([\\/]|$)/i.test(normalized) && !/app\.asar\.unpacked([\\/]|$)/i.test(normalized)
+    )
   }
 
   const isSpawnableBinary = (candidate: string): boolean => {
@@ -75,16 +77,11 @@ function resolveFfmpegPath(): string {
     return undefined
   }
 
-  try {
-    const installer = require('@ffmpeg-installer/ffmpeg') as { path?: string }
-    if (installer.path) {
-      if (!isInsidePackedAsar(installer.path)) {
-        addCandidate(installer.path)
-      }
-      addCandidate(toAsarUnpackedPath(installer.path))
+  if (ffmpegInstaller.path) {
+    if (!isInsidePackedAsar(ffmpegInstaller.path)) {
+      addCandidate(ffmpegInstaller.path)
     }
-  } catch (error) {
-    loadError = error
+    addCandidate(toAsarUnpackedPath(ffmpegInstaller.path))
   }
 
   const resourcesCandidates = [
@@ -120,10 +117,14 @@ function resolveFfmpegPath(): string {
         FFMPEG_BINARY_NAME
       )
     )
-    addCandidate(path.join(resourcesPath, 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME))
+    addCandidate(
+      path.join(resourcesPath, 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME)
+    )
   }
 
-  addCandidate(path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME))
+  addCandidate(
+    path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', platformDir, FFMPEG_BINARY_NAME)
+  )
 
   const existingPath = findExisting(candidateSet)
   if (existingPath) {
@@ -151,12 +152,9 @@ function resolveFfmpegPath(): string {
     return fallbackPath
   }
 
-  const reason =
-    loadError === undefined
-      ? 'ffmpeg binary is missing from packaged resources'
-      : getErrorMessage(loadError, 'unable to load @ffmpeg-installer/ffmpeg')
-
-  throw new Error(`Unable to initialize ffmpeg (${reason}). Checked: ${checkedPaths}`)
+  throw new Error(
+    `Unable to initialize ffmpeg (ffmpeg binary is missing from packaged resources). Checked: ${checkedPaths}`
+  )
 }
 
 function ensureFfmpegConfigured(): void {
@@ -667,9 +665,7 @@ export class DownloadManager {
       const startTime = Date.now()
       const segments = segmentEntries
 
-      const downloadWithPauseCheck = async (
-        segment: SegmentEntry
-      ): Promise<boolean> => {
+      const downloadWithPauseCheck = async (segment: SegmentEntry): Promise<boolean> => {
         while (this.pauseFlags.get(task.id) && !this.cancelFlags.get(task.id)) {
           await new Promise((resolve) => setTimeout(resolve, 500))
         }
@@ -679,7 +675,13 @@ export class DownloadManager {
         }
 
         const segmentPath = path.join(tempDir, segment.fileName)
-        const success = await downloadSegment(segment.url, segmentPath, tempDir, undefined, maxRetries)
+        const success = await downloadSegment(
+          segment.url,
+          segmentPath,
+          tempDir,
+          undefined,
+          maxRetries
+        )
 
         if (this.cancelFlags.get(task.id)) {
           return false
@@ -769,7 +771,9 @@ export class DownloadManager {
       }
 
       if (!mergeResult.success) {
-        console.warn('[DownloadManager] Local segment merge failed, trying direct m3u8 merge fallback')
+        console.warn(
+          '[DownloadManager] Local segment merge failed, trying direct m3u8 merge fallback'
+        )
         mergeResult = await mergeM3u8Directly(m3u8Url, outputPath, (progress) => {
           this.send('download-progress', {
             id: task.id,
@@ -784,9 +788,7 @@ export class DownloadManager {
       }
 
       if (!mergeResult.success) {
-        throw new Error(
-          `Failed to merge video. Attempts: ${mergeAttempts.join(' | ')}`
-        )
+        throw new Error(`Failed to merge video. Attempts: ${mergeAttempts.join(' | ')}`)
       }
 
       this.send('download-progress', {

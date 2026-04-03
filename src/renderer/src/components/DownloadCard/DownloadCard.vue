@@ -6,7 +6,10 @@
     <div class="download-info">
       <div class="download-header">
         <span class="download-filename">{{ item.filename }}</span>
-        <span :class="['status-badge', item.status]" :title="item.status === 'error' ? item.errorMessage : ''">
+        <span
+          :class="['status-badge', item.status]"
+          :title="item.status === 'error' ? item.errorMessage : ''"
+        >
           <component :is="statusBadgeIcon" class="badge-icon" />
           {{ statusText }}
         </span>
